@@ -1,0 +1,16 @@
+# Falha se algum teste em tests/ usar assert(): em Release (NDEBUG) a
+# verificação e a expressão dentro dela deixariam de ser executadas.
+file(GLOB_RECURSE _sources "${TEST_DIR}/*.c" "${TEST_DIR}/*.h")
+set(_bad "")
+foreach(_f ${_sources})
+    file(STRINGS "${_f}" _lines REGEX "(^|[^A-Za-z_])assert[ \t]*\\(|#[ \t]*include[ \t]*<assert\\.h>")
+    if(_lines)
+        list(APPEND _bad "${_f}")
+    endif()
+endforeach()
+if(_bad)
+    string(REPLACE ";" "\n  " _list "${_bad}")
+    message(FATAL_ERROR "Use MORPH_CHECK (tests/support/morph_check.h) em vez de assert():\n  ${_list}")
+endif()
+list(LENGTH _sources _n)
+message(STATUS "OK: ${_n} arquivos de teste sem assert().")
