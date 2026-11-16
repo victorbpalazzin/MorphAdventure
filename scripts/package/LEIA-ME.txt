@@ -1,0 +1,27 @@
+MORPH ADVENTURE - versao desktop (C99 + raylib 5.5)
+====================================================
+
+ESTADO ATUAL: build de integracao, NAO e o jogo completo.
+
+morph-core-shell
+    Janela de diagnostico da base do projeto. Mostra quais modulos
+    (personagem, cenarios, obstaculos, energia, interface, efeitos)
+    ainda estao pendentes. Nao e possivel jogar nesta versao.
+
+morph-adventure (so existe quando os modulos reais forem integrados)
+    Executavel do jogo.
+
+Como abrir
+    Windows: de dois cliques em morph-core-shell.exe.
+    Linux:   ./morph-core-shell
+
+Teclas na janela de diagnostico
+    ESC fecha a janela. A janela pode ser redimensionada.
+
+Requisitos
+    Placa de video com OpenGL 3.3.
+    O pacote so foi verificado no sistema em que foi gerado
+    (ver docs/TESTING.md no repositorio).
+
+A versao original em HTML (MorphAdventure.html) continua no repositorio
+e nao e substituida por este pacote.
