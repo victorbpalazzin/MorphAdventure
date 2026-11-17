@@ -13,25 +13,9 @@
 #include "morph_check.h"
 #include <string.h>
 static Game game;
-static ObstaclesApi original_obstacles;
+GameModules MorphCreateModules(void);
 static RenderTexture2D canvas;
 static const char *directory;
-static void EnvironmentStep(void *ctx,const GameState *g,const FrameContext *f,PlayerView p,bool spawn)
-{
-    ItemsSnapshot items=ItemsInspect();ObstacleProtectedCircle circles[MORPH_MAX_ENERGY];size_t n=0;
-    for(unsigned i=0;i<items.fragment_count;i++)if(items.fragments[i].fade==0){
-        ItemFragmentView t=items.fragments[i];circles[n++]=(ObstacleProtectedCircle){{t.position.x-f->scroll_delta,t.position.y},t.radius};
-    }
-    MORPH_CHECK(ObstaclesSetProtectedItems(circles,n));
-    original_obstacles.step(ctx,g,f,p,spawn);ObstacleEnvironmentView e=ObstaclesEnvironment();
-    WorldsSetEnvironment((WorldVisualEnvironment){e.intensity,e.direction,e.warning});
-}
-static GameModules Modules(void)
-{
-    GameModules m={0};m.contract_version=MORPH_CONTRACT_VERSION;m.player=PlayerModuleCreate();m.worlds=WorldsModuleCreate();
-    m.obstacles=ObstaclesModuleCreate();original_obstacles=m.obstacles;m.obstacles.step=EnvironmentStep;
-    m.items=ItemsModuleCreate();m.ui=UiModuleCreate();m.effects=EffectsModuleCreate();return m;
-}
 static void Command(GameCommand command)
 {GameInput input={.focused=true,.command=command};GameAdvance(&game,0,input);}
 static void Tick(void){GameInput input={.focused=true};GameAdvance(&game,MORPH_STEP_SECONDS,input);MORPH_CHECK(game.state.mode!=GAME_ERROR);}
@@ -132,7 +116,7 @@ int main(int argc,char **argv)
     if(capture){directory=argv[2];}SetConfigFlags(FLAG_WINDOW_RESIZABLE|(capture?FLAG_WINDOW_HIDDEN:0));
     InitWindow(960,540,"Morph Adventure - laboratorio de integracao");MORPH_CHECK(IsWindowReady());SetExitKey(KEY_NULL);SetWindowMinSize(480,270);
     canvas=LoadRenderTexture(960,540);MORPH_CHECK(IsRenderTextureValid(canvas));SetTextureFilter(canvas.texture,TEXTURE_FILTER_BILINEAR);
-    GameModules modules=Modules();MORPH_CHECK(GameInit(&game,&modules) && game.ready);
+    GameModules modules=MorphCreateModules();MORPH_CHECK(GameInit(&game,&modules) && game.ready);
     if(capture)Validate();else{
         SetTargetFPS(60);
         while(!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)){
