@@ -1,0 +1,13 @@
+# Owned player tests; uses person 7's extension points without changing shared build.
+morph_add_logic_test(player-collisions collision_test.c ${PROJECT_SOURCE_DIR}/src/player/collision.c)
+if(TARGET morph::raylib)
+    set(_player_sources ${PROJECT_SOURCE_DIR}/src/player/player.c ${PROJECT_SOURCE_DIR}/src/player/player_draw.c)
+    morph_add_module_test(player-physics SOURCES ${_player_sources} TESTS physics_test.c)
+    add_executable(player-preview player_preview.c ${_player_sources})
+    target_link_libraries(player-preview PRIVATE morph_core morph::raylib)
+    target_include_directories(player-preview PRIVATE ${MORPH_TEST_SUPPORT_DIR})
+    morph_project_target(player-preview)
+    morph_standalone_runtime(player-preview)
+else()
+    message(STATUS "Player physics/preview need raylib linkage; collision tests remain available without raylib.")
+endif()
