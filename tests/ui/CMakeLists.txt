@@ -1,0 +1,22 @@
+if(TARGET morph::raylib)
+    file(GLOB _ui_modules CONFIGURE_DEPENDS
+        "${PROJECT_SOURCE_DIR}/src/ui/*.c" "${PROJECT_SOURCE_DIR}/src/effects/*.c"
+        "${PROJECT_SOURCE_DIR}/src/items/*.c" "${PROJECT_SOURCE_DIR}/src/obstacles/*.c"
+        "${PROJECT_SOURCE_DIR}/src/worlds/*.c" "${PROJECT_SOURCE_DIR}/src/player/*.c")
+    morph_add_module_test(ui-rules SOURCES ${_ui_modules} TESTS ui_rules.c)
+    add_executable(ui-lab ui_lab.c ${_ui_modules})
+    target_include_directories(ui-lab PRIVATE ${MORPH_TEST_SUPPORT_DIR})
+    target_link_libraries(ui-lab PRIVATE morph_core morph::raylib)
+    morph_project_target(ui-lab)
+    morph_standalone_runtime(ui-lab)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/captures")
+    add_test(NAME ui-flow COMMAND ui-lab --capture "${CMAKE_CURRENT_BINARY_DIR}/captures")
+    set_tests_properties(ui-flow PROPERTIES LABELS "gui;ui;integration" TIMEOUT 120)
+    if(UNIX AND NOT APPLE AND NOT DEFINED ENV{DISPLAY} AND NOT DEFINED ENV{WAYLAND_DISPLAY})
+        find_program(UI_XVFB xvfb-run)
+        set_tests_properties(ui-flow PROPERTIES DISABLED TRUE)
+        if(UI_XVFB)
+            add_test(NAME ui-flow-xvfb COMMAND ${UI_XVFB} -a $<TARGET_FILE:ui-lab> --capture "${CMAKE_CURRENT_BINARY_DIR}/captures")
+        endif()
+    endif()
+endif()
