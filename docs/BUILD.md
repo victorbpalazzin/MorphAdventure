@@ -2,8 +2,9 @@
 
 Responsável: pessoa 7. Contrato de código: [`CONTRACTS.md`](CONTRACTS.md). Testes: [`TESTING.md`](TESTING.md).
 
-> **Estado atual:** os módulos das pessoas 2–6 ainda não foram entregues. O único executável é
-> `morph-core-shell`, a **janela de diagnóstico** da pessoa 1. Ela não é o jogo.
+> **Integração local:** os módulos 2–6 e `src/core/composition.c` estão disponíveis.
+> Configure com `-DMORPH_MODULES_LINKED=ON` para gerar `morph-adventure`.
+> O alvo `morph-core-shell` continua sendo apenas diagnóstico. Veja [INTEGRATION.md](INTEGRATION.md).
 
 ## O que o build gera
 

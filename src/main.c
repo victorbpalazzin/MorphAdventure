@@ -12,6 +12,7 @@
 /* Person 1 adds this composition function after the real modules are delivered.
  * Without it, this executable explicitly shows the integration status only. */
 #ifdef MORPH_MODULES_LINKED
+#include "ui/ui.h"
 GameModules MorphCreateModules(void);
 #endif
 
@@ -51,6 +52,9 @@ int main(int argc, char **argv)
     }
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
     InitWindow(1100, 700, "Morph Adventure - base C/raylib (pessoa 1)");
+#ifdef MORPH_MODULES_LINKED
+    SetWindowTitle("Morph Adventure");
+#endif
     if (!IsWindowReady()) return 1;
     SetWindowMinSize(480, 270);
     SetExitKey(KEY_NULL);
@@ -72,6 +76,10 @@ int main(int argc, char **argv)
         input.focused = IsWindowFocused() && !IsWindowMinimized();
         input.impulse_pressed = IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W);
         if (IsKeyPressed(KEY_P)) input.command = COMMAND_TOGGLE_PAUSE;
+#ifdef MORPH_MODULES_LINKED
+        if (IsKeyPressed(KEY_TAB)) UiQueueNavigation(IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? -1 : 1, false);
+        if (IsKeyPressed(KEY_ENTER)) UiQueueNavigation(0, true);
+#endif
         if (game.state.mode == GAME_INTRO && input.impulse_pressed) input.command = COMMAND_START;
         bool touch = GetTouchPointCount() > 0;
         Vector2 point = touch ? GetTouchPosition(0) : GetMousePosition();
