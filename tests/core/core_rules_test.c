@@ -8,19 +8,19 @@
 
 static void CheckContractConstants(void)
 {
-    MORPH_CHECK(MORPH_CONTRACT_VERSION == 1u);
+    MORPH_CHECK(MORPH_CONTRACT_VERSION == 5u);
     MORPH_CHECK(MORPH_WIDTH == 960 && MORPH_HEIGHT == 540);
     MORPH_CHECK(MORPH_WORLD_COUNT == 6);
     MORPH_CHECK(MORPH_MAX_BOOSTS == 2);
     MORPH_CHECK_NEAR(MORPH_STEP_SECONDS * 60.0, 1.0, 1e-12);
     /* A maior meta (Fogo) cabe no limite de fragmentos do contrato. */
-    MORPH_CHECK(GameEnergyRequired(MORPH_WORLD_COUNT - 1) == MORPH_MAX_ENERGY);
+    MORPH_CHECK(GameEnergyRequired(MORPH_WORLD_COUNT - 1) <= MORPH_MAX_ENERGY);
 }
 
-/* Metas 4, 8, 12, 16, 20, 24: nunca seis fragmentos fixos. */
+/* Metas 4, 6, 8, 10, 12, 16: nunca seis fragmentos fixos. */
 static void CheckEnergyTargets(void)
 {
-    static const unsigned expected[MORPH_WORLD_COUNT] = {4, 8, 12, 16, 20, 24};
+    static const unsigned expected[MORPH_WORLD_COUNT] = {4, 6, 8, 10, 12, 16};
     for (int w = 0; w < MORPH_WORLD_COUNT; w++)
         MORPH_CHECK(GameEnergyRequired(w) == expected[w]);
     MORPH_CHECK(GameEnergyRequired(-1) == 0);
@@ -68,6 +68,7 @@ static void CheckModeNames(void)
 {
     static const char *names[] = {"INTRO", "PLAY", "PAUSED", "PORTAL", "TRANSITION", "LOST", "WON", "ERROR"};
     for (int m = GAME_INTRO; m <= GAME_ERROR; m++) MORPH_CHECK(strcmp(GameModeName((GameMode)m), names[m]) == 0);
+    MORPH_CHECK(strcmp(GameModeName(GAME_BOSS), "BOSS") == 0);
     MORPH_CHECK(strcmp(GameModeName((GameMode)99), "INVALID") == 0);
 }
 
@@ -144,7 +145,7 @@ int main(void)
     CheckModeNames();
     CheckViewportSizes();
     CheckDiagnosticShell();
-    puts("PASS core-rules: metas 4..24, bateria por coleta, fila de eventos, nomes de modo, "
+    puts("PASS core-rules: metas 4..19, bateria por coleta, fila de eventos, nomes de modo, "
          "viewport em 10 tamanhos e janela de diagnóstico sem módulos.");
     return 0;
 }

@@ -3,6 +3,7 @@ if(TARGET morph::raylib)
         "${PROJECT_SOURCE_DIR}/src/ui/*.c" "${PROJECT_SOURCE_DIR}/src/effects/*.c"
         "${PROJECT_SOURCE_DIR}/src/items/*.c" "${PROJECT_SOURCE_DIR}/src/obstacles/*.c"
         "${PROJECT_SOURCE_DIR}/src/worlds/*.c" "${PROJECT_SOURCE_DIR}/src/player/*.c")
+    list(FILTER _ui_modules EXCLUDE REGEX "combat_energy[.]c$")
     morph_add_module_test(ui-rules SOURCES ${_ui_modules} TESTS ui_rules.c)
     add_executable(ui-lab ui_lab.c ${_ui_modules} ${PROJECT_SOURCE_DIR}/src/core/composition.c)
     target_include_directories(ui-lab PRIVATE ${MORPH_TEST_SUPPORT_DIR})

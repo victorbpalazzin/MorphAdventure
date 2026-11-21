@@ -5,6 +5,7 @@
 /* Coordinator integration fixture. NOT a player/items/world implementation.
  * Person 7 may move this to tests/ once the shared build is ready. */
 #include "core/game.h"
+#include "boss/boss.h"
 #include "core/viewport.h"
 #include <stdlib.h>
 #include <math.h>
@@ -15,12 +16,12 @@
 #define CHECK(condition) do { if (!(condition)) { fprintf(stderr, "CHECK failed: %s (%s:%d)\n", #condition, __FILE__, __LINE__); exit(EXIT_FAILURE); } } while (0)
 
 static const WorldConfig configs[6] = {
-    {"Ar",4.2f,210,92,12,.019f,1500,440,.065f},
-    {"Agua",4.6f,202,86,16,.021f,2100,410,.080f},
-    {"Floresta",5,194,80,20,.023f,2700,380,0},
-    {"Gelo",5.4f,186,74,24,.025f,3300,350,.090f},
-    {"Terra",5.8f,178,68,28,.027f,3900,320,.105f},
-    {"Fogo",6.2f,170,62,32,.029f,4500,290,0}
+    {"Ar",4.2f,210,78.2f,12,.019f,1500,440,.065f},
+    {"Agua",4.6f,202,73.1f,16,.021f,2100,410,.080f},
+    {"Floresta",5,194,68,20,.023f,2700,380,0},
+    {"Gelo",5.4f,186,62.9f,24,.025f,3300,350,.090f},
+    {"Terra",5.8f,178,57.8f,28,.027f,3900,320,.105f},
+    {"Fogo",6.2f,170,52.7f,32,.029f,4500,290,0}
 };
 typedef struct Fixture {
     PlayerView player;
@@ -105,7 +106,7 @@ static void CheckViewport(void)
 }
 static void CheckLifecycle(void)
 {
-    Game g;GameModules missing={0};missing.contract_version=1;
+    Game g;GameModules missing={0};missing.contract_version=MORPH_CONTRACT_VERSION;
     CHECK(GameInit(&g,&missing));CHECK(!g.ready&&g.missing_modules==MODULE_ALL);Cmd(&g,COMMAND_START);CHECK(g.state.mode==GAME_INTRO);GameShutdown(&g);
     missing.contract_version=99;CHECK(!GameInit(&g,&missing));CHECK(g.state.mode==GAME_ERROR);
     Fixture f={0};GameModules m=Modules(&f);f.bad_config=true;CHECK(!GameInit(&g,&m));CHECK(f.shutdown_count==6);GameShutdown(&g);CHECK(f.shutdown_count==6);
@@ -141,6 +142,9 @@ static void CheckClockAndInput(void)
 static void CheckDamageAndScore(void)
 {
     Game g;Fixture f;Start(&g,&f);f.collision=true;f.player.touching_floor=true;f.items.shield=true;
+    f.items.boost_count=1;f.items.boosts[0]=(BoostView){BOOST_PHASE,7};
+    Tick(&g);CHECK(g.state.lives==3 && f.hits==0 && f.items.shield);
+    f.items.boost_count=0;
     Tick(&g);CHECK(g.state.lives==3&&f.hits==1&&!f.items.shield);Tick(&g);CHECK(f.hits==1);
     f.player.invulnerable=false;Tick(&g);CHECK(g.state.lives==2&&f.hits==2);
     f.player.invulnerable=false;Tick(&g);CHECK(g.state.lives==1);
@@ -156,19 +160,27 @@ static void CheckCampaign(void)
 {
     Game g;Fixture f;Start(&g,&f);g.state.lives=1;
     for(int world=0;world<6;world++) {
-        CHECK(g.state.world==world);CHECK(g.state.lives==1);CHECK(f.items.collected==0);
-        unsigned target=GameEnergyRequired(world);CHECK(target==(unsigned)(world+1)*4);
-        for(unsigned k=0;k<target;k++){QueueFragment(&f,1);Tick(&g);CHECK(f.items.collected==k+1);float fraction=GameEnergyFraction(k+1,world);CHECK((k+1==target)?fraction==1:fraction<1);}
-        CHECK(g.state.mode==GAME_PLAY);f.clear=true;Tick(&g);CHECK(g.state.mode==GAME_PLAY); /* distance incomplete */
-        g.state.distance=g.state.minimum_distance;f.clear=false;Tick(&g);CHECK(g.state.mode==GAME_PLAY);
+        CHECK(g.state.world==world);CHECK(g.state.lives==1+world/2);CHECK(f.items.collected==0);
+        GameEvent heart={.type=EVENT_BOOST_COLLECTED,.boost=BOOST_LIFE,.multiplier=2};
+        uint64_t life_score=g.state.score;
+        CHECK(GameEnqueueEvent(&f.queued,heart));Tick(&g);
+        CHECK(g.state.lives==1+(world+1)/2 && g.state.score==life_score);
+        CHECK(GameEnqueueEvent(&f.queued,heart));Tick(&g);
+        CHECK(g.state.lives==1+(world+1)/2); /* no duplicate or x2 life reward */
+        static const unsigned targets[]={4,6,8,10,12,16};
+        unsigned target=GameEnergyRequired(world);CHECK(target==targets[world]);
+        float old_scroll=g.state.scroll;Tick(&g);CHECK(g.state.distance==0 && g.state.scroll>old_scroll);
+        for(unsigned k=0;k<target;k++){QueueFragment(&f,1);Tick(&g);CHECK(f.items.collected==k+1);float fraction=GameEnergyFraction(k+1,world);CHECK(fabsf(g.state.distance/g.state.minimum_distance-fraction)<.00001f);CHECK((k+1==target)?fraction==1:fraction<1);}
+        CHECK(g.state.mode==GAME_PLAY && g.state.distance==g.state.minimum_distance);
+        old_scroll=g.state.scroll;f.clear=false;Tick(&g);CHECK(g.state.mode==GAME_PLAY && g.state.scroll>old_scroll);
         f.clear=true;Tick(&g);CHECK(g.state.mode==GAME_PORTAL);
         Cmd(&g,COMMAND_TOGGLE_PAUSE);CHECK(g.state.resume_mode==GAME_PORTAL);int age=f.portal_steps;Tick(&g);CHECK(f.portal_steps==age);Cmd(&g,COMMAND_RESUME);
         uint64_t before=g.state.score;f.items.score_multiplier=2;f.signal=PORTAL_SIGNAL_ENTERED;Tick(&g);CHECK(g.state.mode==GAME_TRANSITION&&g.state.score==before+200);
         Tick(&g);CHECK(g.state.score==before+200); /* duplicate signal cannot pay again */
         Cmd(&g,COMMAND_TOGGLE_PAUSE);CHECK(g.state.resume_mode==GAME_TRANSITION);Cmd(&g,COMMAND_RESUME);
-        f.signal=PORTAL_SIGNAL_BLACKOUT;Tick(&g);CHECK(g.state.lives==1);
+        f.signal=PORTAL_SIGNAL_BLACKOUT;Tick(&g);CHECK(g.state.lives==1+(world+1)/2);
         if(world==5){
-            CHECK(g.state.mode==GAME_WON);CHECK(g.state.world==5);
+            CHECK(g.state.mode==GAME_BOSS);CHECK(g.state.boss.segments==3);CHECK(g.state.world==5);
             int draws=f.transition_draws;
             GameDraw(&g);Tick(&g);GameDraw(&g);
             CHECK(f.transition_draws==draws); /* no frozen blackout above victory */
@@ -183,6 +195,42 @@ static void CheckCampaign(void)
     CHECK(f.fade_switches==5);GameShutdown(&g);
     CHECK(GameEnergyRequired(-1)==0&&GameEnergyRequired(6)==0);
 }
+static void CheckBossIntegration(void)
+{
+    Game g;Fixture f;Start(&g,&f);g.state.mode=GAME_BOSS;g.state.world=5;BossBegin(&g.state.boss,4);
+    g.state.lives=2;for(int i=0;i<180;i++)Tick(&g);
+    CHECK(g.state.boss.stage==BOSS_FIGHT && g.state.lives==2);
+    BossState before=g.state.boss;Cmd(&g,COMMAND_TOGGLE_PAUSE);
+    for(int i=0;i<80;i++)Tick(&g);
+    CHECK(memcmp(&before,&g.state.boss,sizeof(before))==0);Cmd(&g,COMMAND_RESUME);
+    GameInput lost=Focused();lost.focused=false;GameAdvance(&g,2,lost);
+    CHECK(g.state.mode==GAME_PAUSED);Cmd(&g,COMMAND_RESUME);CHECK(g.state.boss.clock==before.clock);
+    f.items.shield=true;g.state.boss.projectile_count=1;
+    g.state.boss.projectiles[0]=(BossProjectile){.position=f.player.position,.previous=f.player.position,.velocity={0,0},.radius=12};
+    f.items.boost_count=1;f.items.boosts[0]=(BoostView){BOOST_PHASE,7};
+    Tick(&g);CHECK(g.state.lives==2 && f.hits==0 && f.items.shield && !g.state.boss.projectiles[0].spent);
+    f.items.boost_count=0;
+    Tick(&g);CHECK(g.state.lives==2 && f.hits==1 && !f.items.shield);Tick(&g);CHECK(f.hits==1);
+    f.player.invulnerable=false;Tick(&g);CHECK(g.state.lives==2 && f.hits==1); /* same spent shot */
+    g.state.boss.projectiles[0].spent=false;Tick(&g);CHECK(g.state.lives==1 && f.hits==2);
+    g.state.boss.energy.present=true;g.state.boss.energy.position=f.player.position;
+    uint64_t score=g.state.score;f.player.invulnerable=false;f.player.touching_floor=true;Tick(&g);
+    CHECK(g.state.mode==GAME_LOST && g.state.score==score && g.state.boss.energy.collected==0);
+    Cmd(&g,COMMAND_RETRY);CHECK(g.state.boss.stage==BOSS_DORMANT && g.state.world==0 && g.state.lives==3);
+    g.state.mode=GAME_BOSS;g.state.world=5;BossBegin(&g.state.boss,4);g.state.boss.stage=BOSS_FIGHT;
+    f.items.score_multiplier=2;g.state.boss.energy.present=true;g.state.boss.energy.position=f.player.position;
+    Tick(&g);CHECK(g.state.score==70 && g.state.boss.energy.collected==1 && f.items.collected==0);
+    for(int shot=0;shot<3;shot++){
+        g.state.boss.energy.collected=4;GameInput attack=Focused();attack.attack_pressed=true;
+        GameAdvance(&g,MORPH_STEP_SECONDS/2,attack);CHECK(!g.state.boss.beam_active);
+        GameAdvance(&g,MORPH_STEP_SECONDS/2,Focused());CHECK(g.state.boss.beam_active);
+        for(int i=0;i<85;i++)Tick(&g);
+        CHECK(g.state.boss.segments==(unsigned)(2-shot));
+    }
+    CHECK(g.state.mode==GAME_BOSS);for(int i=0;i<160;i++)Tick(&g);CHECK(g.state.mode==GAME_WON);
+    Cmd(&g,COMMAND_RESTART);CHECK(g.state.mode==GAME_INTRO && g.state.boss.stage==BOSS_DORMANT);
+    GameShutdown(&g);
+}
 static void CheckFailureReporting(void)
 {
     Game g;Fixture f;Start(&g,&f);f.queued.overflow=true;Tick(&g);CHECK(g.state.mode==GAME_ERROR);CHECK(strstr(g.error,"overflow"));GameShutdown(&g);
@@ -191,7 +239,7 @@ static void CheckFailureReporting(void)
 }
 int main(void)
 {
-    CheckViewport();CheckLifecycle();CheckClockAndInput();CheckDamageAndScore();CheckCampaign();CheckFailureReporting();
+    CheckViewport();CheckLifecycle();CheckClockAndInput();CheckDamageAndScore();CheckCampaign();CheckBossIntegration();CheckFailureReporting();
     puts("PASS: viewport, lifecycle, fixed clock, focus, queued input, pause, damage, score, six-world coordination and contract errors.");
     puts("These are coordinator tests with explicit fixtures, NOT a completed raylib game or full gameplay validation.");
     return 0;

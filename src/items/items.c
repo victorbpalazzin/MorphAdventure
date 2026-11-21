@@ -5,8 +5,10 @@
 static ItemsState state;
 static uint32_t reset_seed=505;
 static const ItemBoostDefinition definitions[]={
-    {BOOST_SHIELD,"Escudo",-1,0x8ddfffff}, {BOOST_MAGNET,"Ima",5,0xffb2e0ff},
-    {BOOST_SLOW,"Slow motion",4,0xbcb5ffff}, {BOOST_DOUBLE,"x2",7,0xffe58fff}
+    {BOOST_SHIELD,"Escudo",-1,0x8ddfffff}, {BOOST_MAGNET,"Ima",7,0xffb2e0ff},
+    {BOOST_SLOW,"Slow motion",4,0xbcb5ffff}, {BOOST_DOUBLE,"x2",7,0xffe58fff},
+    {BOOST_LIFE,"Vida extra",0,0xff8faaff},
+    {BOOST_PHASE,"Intangivel",7,0x91efffff}
 };
 const ItemBoostDefinition *ItemsBoostDefinition(BoostType type)
 {
@@ -25,6 +27,10 @@ static void Activate(ItemsState *s,BoostType type)
     if(s->boost_count==MORPH_MAX_BOOSTS)RemoveBoost(s,0);
     s->boosts[s->boost_count++]=(ActiveItemBoost){type,def->duration_seconds};
 }
+static uint32_t MixSeed(uint32_t x)
+{x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;return x^(x>>16);}
+static float BoostRandom(ItemsState *s)
+{s->boost_seed=s->boost_seed*1664525u+1013904223u;return (float)((s->boost_seed>>8)/16777216.0);}
 static float Random(ItemsState *s)
 {s->seed=s->seed*1664525u+1013904223u;return (float)((s->seed>>8)/16777216.0);}
 static bool Init(void *ctx){memset(ctx,0,sizeof(ItemsState));return true;}
@@ -33,9 +39,10 @@ static void Reset(void *ctx,const GameState *g,const WorldConfig *cfg)
 {
     ItemsState *s=ctx;memset(s,0,sizeof(*s));s->world=g->world;s->required=GameEnergyRequired(g->world);
     s->valid=s->required>0 && cfg && isfinite(cfg->duration_steps) && cfg->duration_steps>0;
-    s->seed=reset_seed^(0x9e3779b9u*(unsigned)(g->world+1));
-    s->fragment_timer=180;s->boost_timer=520;
-    if(s->valid)s->fragment_interval=fmaxf(125,cfg->duration_steps/(s->required+1));
+    s->seed=MixSeed(reset_seed ^ (0x9e3779b9u*(unsigned)(g->world+1)) ^ MixSeed(g->run_id));
+    s->boost_seed=MixSeed(s->seed^0xa511e9b3u);
+    s->fragment_timer=180;s->boost_timer=360+BoostRandom(s)*320;
+    if(s->valid)s->fragment_interval=fminf(180,fmaxf(125,cfg->duration_steps/(s->required+1))); /* fewer goals must not lengthen the wait for a replacement */
 }
 static void Timers(void *ctx,const FrameContext *f)
 {
@@ -77,11 +84,20 @@ static void SpawnPower(ItemsState *s,PassageQuery q)
 {
     if(s->power_count==ITEMS_POWER_CAPACITY)return;
     BoostType choices[sizeof(definitions)/sizeof(*definitions)];unsigned count=0;
-    for(size_t i=0;i<sizeof(definitions)/sizeof(*definitions);i++)if(Active(s,definitions[i].type)<0)choices[count++]=definitions[i].type;
+    for(size_t i=0;i<sizeof(definitions)/sizeof(*definitions);i++)if(definitions[i].type!=BOOST_LIFE && Active(s,definitions[i].type)<0)choices[count++]=definitions[i].type;
     if(!count)return;
-    BoostType type=choices[(unsigned)(Random(s)*count)];GameVec2 p;
-    if(!SafePosition(q,1040,140+Random(s)*230,21,&p))return;
+    BoostType type=choices[(unsigned)(BoostRandom(s)*count)];GameVec2 p;
+    if(!SafePosition(q,1040,140+BoostRandom(s)*230,21,&p))return;
+    GameVec2 varied={p.x,p.y+(BoostRandom(s)-.5f)*70};
+    if(q.is_safe(q.context,varied,21))p=varied;
     s->powers[s->power_count++]=(ItemPowerView){++s->next_power_id,type,p,21};
+}
+static void SpawnLife(ItemsState *s,PassageQuery q)
+{
+    if(s->world%2!=1 || s->life_collected || s->collected<s->required/2 || s->power_count==ITEMS_POWER_CAPACITY)return;
+    for(unsigned i=0;i<s->power_count;i++)if(s->powers[i].type==BOOST_LIFE)return;
+    GameVec2 p;if(!SafePosition(q,995,245,21,&p))return;
+    s->powers[s->power_count++]=(ItemPowerView){++s->next_power_id,BOOST_LIFE,p,21};
 }
 static bool Touch(GameVec2 p,float radius,PlayerView player)
 {float dx=p.x-player.position.x,dy=p.y-player.position.y;float r=radius+player.visual_radius;return dx*dx+dy*dy<r*r;}
@@ -100,7 +116,9 @@ static void Collect(void *ctx,const GameState *g,const FrameContext *f,PlayerVie
     if(!s->valid || !q.safe_y || !q.is_safe || !isfinite(f->world_steps) || f->world_steps<0 || !isfinite(f->scroll_delta) || f->scroll_delta<0){events->overflow=true;return;}
     s->fragment_timer-=f->world_steps;s->boost_timer-=f->world_steps;
     if(s->fragment_timer<=0 && s->collected<s->required){SpawnFragment(s,q);s->fragment_timer=s->fragment_interval;}
-    if(s->boost_timer<=0){SpawnPower(s,q);s->boost_timer=620+Random(s)*200;}
+    if(s->boost_timer<=0){SpawnPower(s,q);s->boost_timer=500+BoostRandom(s)*440;}
+    s->life_timer-=f->world_steps;
+    if(s->life_timer<=0){SpawnLife(s,q);s->life_timer=90;}
     unsigned kept=0;
     for(unsigned i=0;i<s->fragment_count;i++){
         ItemFragmentView item=s->fragments[i];item.spin+=.06f*f->normal_steps;
@@ -128,7 +146,10 @@ static void Collect(void *ctx,const GameState *g,const FrameContext *f,PlayerVie
         if(item.position.x<-50 || !q.is_safe(q.context,item.position,item.radius))continue;
         if(Touch(item.position,item.radius,player)){
             GameEvent e={0};e.type=EVENT_BOOST_COLLECTED;e.position=item.position;e.entity_id=item.id;e.boost=item.type;e.multiplier=View(s).score_multiplier;
-            if(GameEnqueueEvent(events,e)){Activate(s,item.type);continue;}
+            if(GameEnqueueEvent(events,e)){
+                if(item.type==BOOST_LIFE)s->life_collected=true;else Activate(s,item.type);
+                continue;
+            }
         }
         s->powers[kept++]=item;
     }

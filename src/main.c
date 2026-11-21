@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <limits.h>
 
 #if RAYLIB_VERSION_MAJOR != 5 || RAYLIB_VERSION_MINOR != 5
 #error This project currently pins raylib 5.5. Coordinate version changes with person 7.
@@ -13,6 +15,7 @@
  * Without it, this executable explicitly shows the integration status only. */
 #ifdef MORPH_MODULES_LINKED
 #include "ui/ui.h"
+#include "items/items.h"
 GameModules MorphCreateModules(void);
 #endif
 
@@ -65,6 +68,8 @@ int main(int argc, char **argv)
     GameModules modules = {0};
     modules.contract_version = MORPH_CONTRACT_VERSION;
 #ifdef MORPH_MODULES_LINKED
+    ItemsSetSeed((uint32_t)time(NULL) ^ (uint32_t)clock() ^
+        (uint32_t)(GetTime()*1000000.0) ^ ((uint32_t)GetRandomValue(0,INT_MAX)<<1));
     modules = MorphCreateModules();
 #endif
     Game game;
@@ -75,6 +80,7 @@ int main(int argc, char **argv)
         GameInput input = {0};
         input.focused = IsWindowFocused() && !IsWindowMinimized();
         input.impulse_pressed = IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W);
+        input.attack_pressed = IsKeyPressed(KEY_J);
         if (IsKeyPressed(KEY_P)) input.command = COMMAND_TOGGLE_PAUSE;
 #ifdef MORPH_MODULES_LINKED
         if (IsKeyPressed(KEY_TAB)) UiQueueNavigation(IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? -1 : 1, false);

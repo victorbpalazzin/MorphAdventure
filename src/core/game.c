@@ -1,4 +1,6 @@
 #include "game.h"
+#include "boss/boss.h"
+#include "items/combat_energy.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -39,12 +41,13 @@ static void Fail(Game *g, const char *message)
     snprintf(g->error, sizeof(g->error), "%s", message);
     g->state.mode = GAME_ERROR;
     g->accumulator = 0;
-    g->pending_impulse = false;
+    g->pending_impulse = false; g->pending_attack = false;
 }
 
 unsigned GameEnergyRequired(int world)
 {
-    return world >= 0 && world < MORPH_WORLD_COUNT ? 4u * ((unsigned)world + 1u) : 0u;
+    static const unsigned targets[MORPH_WORLD_COUNT] = {4, 6, 8, 10, 12, 16};
+    return world >= 0 && world < MORPH_WORLD_COUNT ? targets[world] : 0u;
 }
 
 float GameEnergyFraction(unsigned collected, int world)
@@ -82,11 +85,12 @@ static bool BeginWorld(Game *g, int world, bool preserve_fade)
     g->config = cfg;
     g->state.world = world;
     g->state.world_id++;
+    g->life_awarded = false;
     g->state.distance = g->state.scroll = 0;
     g->state.minimum_distance = cfg->base_speed * cfg->duration_steps;
     g->state.world_steps = 0;
     g->state.speed = cfg->base_speed;
-    g->pending_impulse = false;
+    g->pending_impulse = false; g->pending_attack = false;
     /* Lives/score intentionally untouched. Effects retain fade at the midpoint. */
     for (unsigned i = 0; i < 5; i++) {
         ModuleLife life = LifeAt(g, i);
@@ -100,6 +104,7 @@ static bool BeginWorld(Game *g, int world, bool preserve_fade)
 
 static void NewRun(Game *g, GameMode mode)
 {
+    g->state.boss = (BossState){0};
     g->state.lives = 3;
     g->state.score = 0;
     g->state.run_id++;
@@ -107,7 +112,7 @@ static void NewRun(Game *g, GameMode mode)
     g->state.mode = mode;
     g->state.resume_mode = GAME_PLAY;
     g->accumulator = 0;
-    g->pending_impulse = false;
+    g->pending_impulse = false; g->pending_attack = false;
     g->transition_switched = false;
     (void)BeginWorld(g, 0, false);
 }
@@ -159,14 +164,14 @@ void GameShutdown(Game *g)
 
 static bool Active(GameMode mode)
 {
-    return mode == GAME_PLAY || mode == GAME_PORTAL || mode == GAME_TRANSITION;
+    return mode == GAME_PLAY || mode == GAME_PORTAL || mode == GAME_TRANSITION || mode == GAME_BOSS;
 }
 
 static void Pause(Game *g)
 {
     if (Active(g->state.mode)) { g->state.resume_mode = g->state.mode; g->state.mode = GAME_PAUSED; }
     g->accumulator = 0;
-    g->pending_impulse = false;
+    g->pending_impulse = false; g->pending_attack = false;
 }
 
 static bool Command(Game *g, GameCommand command)
@@ -179,7 +184,7 @@ static bool Command(Game *g, GameCommand command)
     else if ((command == COMMAND_RESUME || command == COMMAND_TOGGLE_PAUSE) && before == GAME_PAUSED) {
         g->state.mode = g->state.resume_mode;
         g->accumulator = 0;
-        g->pending_impulse = false;
+        g->pending_impulse = false; g->pending_attack = false;
     } else return false;
     return true;
 }
@@ -210,9 +215,13 @@ static void Reward(Game *g, unsigned points, unsigned multiplier)
     g->state.score += addition;
 }
 
-static void Damage(Game *g, PlayerView player)
+static bool Damage(Game *g, PlayerView player)
 {
-    if (player.invulnerable || g->state.mode != GAME_PLAY) return;
+    if (player.invulnerable || (g->state.mode != GAME_PLAY && g->state.mode != GAME_BOSS)) return false;
+    ItemsView protection = ReadItems(g);
+    if (g->state.mode == GAME_ERROR) return false;
+    for (unsigned i=0;i<protection.boost_count;i++)
+        if (protection.boosts[i].type==BOOST_PHASE) return false;
     bool shield = g->modules.items.consume_shield(g->modules.items.life.context);
     g->modules.player.apply_hit(g->modules.player.life.context);
     if (!shield) g->state.lives--;
@@ -220,9 +229,10 @@ static void Damage(Game *g, PlayerView player)
     if (g->state.lives <= 0) {
         g->state.lives = 0;
         g->state.mode = GAME_LOST;
-        g->pending_impulse = false;
+        g->pending_impulse = false; g->pending_attack = false;
         g->accumulator = 0;
     }
+    return true;
 }
 
 static float Pace(const GameState *s)
@@ -255,14 +265,14 @@ static void Step(Game *g, GameInput input)
         items = ReadItems(g);
         if (g->state.mode == GAME_ERROR) return;
         f = Frame(g, items.world_scale);
+        g->state.distance = g->state.minimum_distance * GameEnergyFraction(items.collected, g->state.world);
         f.pace = Pace(&g->state);
         g->state.speed += (g->config->base_speed * f.pace - g->state.speed) * 0.025f * f.world_steps;
         f.scroll_delta = g->state.speed * f.world_steps;
         g->state.scroll += f.scroll_delta;
-        g->state.distance = fminf(g->state.minimum_distance, g->state.distance + f.scroll_delta);
         g->state.world_steps += f.world_steps;
         PlayerView player = m->player.view(m->player.life.context);
-        bool spawn = items.collected < GameEnergyRequired(g->state.world) || g->state.distance < g->state.minimum_distance;
+        bool spawn = items.collected < GameEnergyRequired(g->state.world);
         m->obstacles.step(m->obstacles.life.context, &g->state, &f, player, spawn);
         m->player.step(m->player.life.context, &g->state, &f, &input, m->obstacles.vertical_force(m->obstacles.life.context));
         player = m->player.view(m->player.life.context);
@@ -283,6 +293,11 @@ static void Step(Game *g, GameInput input)
         for (size_t i = 0; i < events.count; i++) {
             GameEvent *event = &events.values[i];
             if (event->type == EVENT_FRAGMENT_COLLECTED) Reward(g, 35, event->multiplier);
+            else if (event->type == EVENT_BOOST_COLLECTED && event->boost == BOOST_LIFE) {
+                if (g->state.world%2==1 && !g->life_awarded) {
+                    g->state.lives++;g->life_awarded=true;
+                }
+            }
             else if (event->type != EVENT_BOOST_COLLECTED) { Fail(g, "Unexpected item event."); return; }
             if (g->state.mode == GAME_ERROR) return;
             m->effects.event(m->effects.life.context, event);
@@ -290,14 +305,41 @@ static void Step(Game *g, GameInput input)
         unsigned before = items.collected;
         items = ReadItems(g);
         if (g->state.mode == GAME_ERROR) return;
+        g->state.distance = g->state.minimum_distance * GameEnergyFraction(items.collected, g->state.world);
         if (before < GameEnergyRequired(g->state.world) && items.collected == GameEnergyRequired(g->state.world))
             Notify(g, EVENT_PORTAL_CHARGED, player.position, 1);
-        if (items.collected == GameEnergyRequired(g->state.world) && g->state.distance >= g->state.minimum_distance &&
+        if (items.collected == GameEnergyRequired(g->state.world) &&
             m->obstacles.path_clear(m->obstacles.life.context, player)) {
             g->state.mode = GAME_PORTAL;
-            g->pending_impulse = false;
+            g->pending_impulse = false; g->pending_attack = false;
             m->effects.begin_portal(m->effects.life.context, &g->state, player);
         }
+    } else if (g->state.mode == GAME_BOSS) {
+        BossState *boss = &g->state.boss;
+        if (boss->stage == BOSS_FIGHT) m->items.step_timers(m->items.life.context, &f);
+        items = ReadItems(g);
+        if (g->state.mode == GAME_ERROR) return;
+        f = Frame(g, items.world_scale);
+        g->state.speed += (0.8f-g->state.speed)*0.04f;
+        f.scroll_delta=g->state.speed*f.world_steps;
+        g->state.scroll+=f.scroll_delta;
+        if (boss->stage == BOSS_FIGHT && !boss->beam_active)
+            m->player.step(m->player.life.context, &g->state, &f, &input, 0);
+        PlayerView player=m->player.view(m->player.life.context);
+        BossStep(boss, &f, player);
+        if (boss->stage == BOSS_FIGHT && !boss->beam_active) {
+            if (player.touching_floor) (void)Damage(g,player);
+            else if (BossTouches(boss,player) && Damage(g,player)) BossRegisterContact(boss,player);
+            if (g->state.mode != GAME_BOSS) return;
+            bool magnet=false;
+            for (unsigned i=0;i<items.boost_count;i++) if(items.boosts[i].type==BOOST_MAGNET) magnet=true;
+            if (CombatEnergyStep(&boss->energy, &f, player, magnet)) {
+                Reward(g,35,items.score_multiplier);
+                Notify(g,EVENT_FRAGMENT_COLLECTED,player.position,items.score_multiplier);
+            }
+            if(input.attack_pressed) (void)BossFire(boss,player);
+        }
+        if(boss->stage==BOSS_DONE) {g->state.mode=GAME_WON;return;}
     } else if (g->state.mode == GAME_PORTAL || g->state.mode == GAME_TRANSITION) {
         if (g->state.mode == GAME_PORTAL) {
             f.scroll_delta = g->state.speed * 0.35f;
@@ -314,12 +356,20 @@ static void Step(Game *g, GameInput input)
             g->transition_switched = false;
         } else if (signal == PORTAL_SIGNAL_BLACKOUT && g->state.mode == GAME_TRANSITION && !g->transition_switched) {
             g->transition_switched = true;
-            if (g->state.world == MORPH_WORLD_COUNT - 1) { g->state.mode = GAME_WON; return; }
+            if (g->state.world == MORPH_WORLD_COUNT - 1) {
+                g->state.mode = GAME_BOSS;
+                BossBegin(&g->state.boss, MORPH_COMBAT_ENERGY_DEFAULT);
+                m->player.life.reset_world(m->player.life.context, &g->state, g->config);
+                m->obstacles.life.reset_world(m->obstacles.life.context, &g->state, g->config);
+                m->effects.life.reset_world(m->effects.life.context, &g->state, g->config);
+                g->pending_attack = g->pending_impulse = false;
+                return;
+            }
             if (!BeginWorld(g, g->state.world + 1, true)) return;
             items = ReadItems(g);
         } else if (signal == PORTAL_SIGNAL_FADE_DONE && g->state.mode == GAME_TRANSITION && g->transition_switched) {
             g->state.mode = GAME_PLAY;
-            g->pending_impulse = false;
+            g->pending_impulse = false; g->pending_attack = false;
         }
         m->player.set_portal_pose(m->player.life.context, m->effects.portal_pose(m->effects.life.context));
     }
@@ -336,9 +386,18 @@ void GameAdvance(Game *g, double seconds, GameInput input)
     UiDecision ui = g->modules.ui.input(g->modules.ui.life.context, &g->state, &input);
     GameCommand command = ui.command != COMMAND_NONE ? ui.command : input.command;
     if (Command(g, command)) return; /* Never simulate the elapsed time before a reset/resume. */
-    if (!Active(g->state.mode)) { g->accumulator = 0; g->pending_impulse = false; return; }
-    if (g->state.mode == GAME_PLAY && (input.impulse_pressed ||
+    if (!Active(g->state.mode)) {
+        g->accumulator = 0; g->pending_impulse = false; g->pending_attack = false;
+        if ((g->state.mode==GAME_INTRO || g->state.mode==GAME_WON) && isfinite(seconds) && seconds>0) {
+            FrameContext presentation={.ui_seconds=(float)fmin(seconds,.1)};
+            ItemsView items=ReadItems(g);
+            if(g->state.mode!=GAME_ERROR)g->modules.ui.step(g->modules.ui.life.context,&g->state,&presentation,&items);
+        }
+        return;
+    }
+    if ((g->state.mode == GAME_PLAY || g->state.mode == GAME_BOSS) && (input.impulse_pressed ||
         (input.pointer_pressed && input.pointer_inside && !ui.consumes_pointer))) g->pending_impulse = true;
+    if (g->state.mode == GAME_BOSS && input.attack_pressed) g->pending_attack = true;
     if (!isfinite(seconds) || seconds <= 0) return;
     g->accumulator += fmin(seconds, 0.1);
     unsigned count = 0;
@@ -348,7 +407,8 @@ void GameAdvance(Game *g, double seconds, GameInput input)
         step_input.command = COMMAND_NONE;
         step_input.pointer_pressed = false;
         step_input.impulse_pressed = g->pending_impulse;
-        g->pending_impulse = false;
+        step_input.attack_pressed = g->pending_attack;
+        g->pending_impulse = false; g->pending_attack = false;
         Step(g, step_input);
         count++;
     }
@@ -363,19 +423,21 @@ void GameDraw(Game *g)
     ItemsView items = ReadItems(g);
     if (g->state.mode == GAME_ERROR) return;
     m->worlds.draw(m->worlds.life.context, &g->state);
-    m->obstacles.draw(m->obstacles.life.context, &g->state);
-    m->items.draw(m->items.life.context, &g->state);
+    if(g->state.boss.stage==BOSS_DORMANT) {
+        m->obstacles.draw(m->obstacles.life.context, &g->state);
+        m->items.draw(m->items.life.context, &g->state);
+    }
     m->effects.draw_portal(m->effects.life.context, &g->state);
     m->player.draw(m->player.life.context, &g->state, &items);
     m->effects.draw_particles(m->effects.life.context, &g->state);
     m->ui.draw(m->ui.life.context, &g->state, &items);
     /* The final blackout stops advancing at WON; never cover the victory UI. */
-    if (g->state.mode != GAME_WON)
+    if (g->state.mode != GAME_WON && g->state.boss.stage==BOSS_DORMANT)
         m->effects.draw_transition(m->effects.life.context, &g->state);
 }
 
 const char *GameModeName(GameMode mode)
 {
-    static const char *names[] = {"INTRO", "PLAY", "PAUSED", "PORTAL", "TRANSITION", "LOST", "WON", "ERROR"};
-    return mode >= GAME_INTRO && mode <= GAME_ERROR ? names[mode] : "INVALID";
+    static const char *names[] = {"INTRO", "PLAY", "PAUSED", "PORTAL", "TRANSITION", "LOST", "WON", "ERROR", "BOSS"};
+    return mode >= GAME_INTRO && mode <= GAME_BOSS ? names[mode] : "INVALID";
 }

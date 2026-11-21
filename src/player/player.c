@@ -30,7 +30,7 @@ static void Step(void *context, const GameState *game, const FrameContext *frame
                  const GameInput *input, float force)
 {
     PlayerState *p = context;
-    if (game->mode != GAME_PLAY || p->portal_override) return;
+    if ((game->mode != GAME_PLAY && game->mode != GAME_BOSS) || p->portal_override) return;
     const float dt = frame->normal_steps;
     if (!isfinite(dt) || dt <= 0) return;
     if (!isfinite(force)) force = 0;

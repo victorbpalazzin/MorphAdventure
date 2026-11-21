@@ -1,4 +1,5 @@
 #include "ui/ui.h"
+#include "ui/ui_internal.h"
 #include "effects/effects.h"
 #include "core/game.h"
 #include "morph_check.h"
@@ -7,9 +8,12 @@ static void CheckInput(void)
 {
     UiApi api=UiModuleCreate();MORPH_CHECK(api.life.init(api.life.context));
     GameState g={.mode=GAME_INTRO};api.life.reset_world(api.life.context,&g,NULL);
-    GameInput in={.focused=true,.pointer_pressed=true,.pointer_inside=true,.pointer={480,380}};
+    GameInput in={.focused=true,.pointer_pressed=true,.pointer_inside=true,.pointer={765,460}};
     GameState before=g;UiDecision d=api.input(api.life.context,&g,&in);
     MORPH_CHECK(d.command==COMMAND_START && d.consumes_pointer && memcmp(&g,&before,sizeof(g))==0);
+    g.mode=GAME_WON;in.pointer=(GameVec2){765,450};
+    MORPH_CHECK(api.input(api.life.context,&g,&in).command==COMMAND_RETRY);
+    in.pointer=(GameVec2){765,500};MORPH_CHECK(api.input(api.life.context,&g,&in).command==COMMAND_RESTART);
     in.pointer_inside=false;MORPH_CHECK(api.input(api.life.context,&g,&in).command==COMMAND_NONE);
     g.mode=GAME_PLAY;in.pointer_inside=true;in.pointer=(GameVec2){915,40};d=api.input(api.life.context,&g,&in);
     MORPH_CHECK(d.command==COMMAND_TOGGLE_PAUSE && d.consumes_pointer);
@@ -22,15 +26,24 @@ static void CheckInput(void)
     g.mode=GAME_WON;MORPH_CHECK(api.input(api.life.context,&g,&in).command==COMMAND_RETRY);
     in.focused=false;UiQueueNavigation(1,true);MORPH_CHECK(api.input(api.life.context,&g,&in).command==COMMAND_NONE);
     g.mode=GAME_PLAY;g.world=5;api.life.reset_world(api.life.context,&g,NULL);
-    ItemsView v={.collected=23};FrameContext f={.ui_seconds=1.0f/60};
+    ItemsView v={.collected=15};FrameContext f={.ui_seconds=1.0f/60};
     for(int i=0;i<120;i++)api.step(api.life.context,&g,&f,&v);
-    MORPH_CHECK(UiInspect().battery<1);MORPH_CHECK_NEAR(UiInspect().battery,23.0/24,.0002);
-    v.collected=24;g.score=35;api.step(api.life.context,&g,&f,&v);
+    MORPH_CHECK(UiInspect().battery<1);MORPH_CHECK_NEAR(UiInspect().battery,15.0/16,.0002);
+    v.collected=16;g.score=35;api.step(api.life.context,&g,&f,&v);
     MORPH_CHECK(UiInspect().charge_pulse==35 && UiInspect().score_pulse==17);
     g.mode=GAME_PAUSED;UiSnapshot snap=UiInspect();api.step(api.life.context,&g,&f,&v);
     MORPH_CHECK(UiInspect().battery==snap.battery && UiInspect().title_steps==snap.title_steps);
     g.mode=GAME_PLAY;for(int i=0;i<120;i++)api.step(api.life.context,&g,&f,&v);
     MORPH_CHECK(UiInspect().battery==1);api.life.shutdown(api.life.context);api.life.shutdown(api.life.context);
+}
+static void CheckNarrativeClock(void)
+{
+    UiApi api=UiModuleCreate();MORPH_CHECK(api.life.init(api.life.context));
+    GameState g={.mode=GAME_INTRO};ItemsView items={0};FrameContext f={.ui_seconds=1.0f/60};
+    UiState *s=api.life.context;api.step(s,&g,&f,&items);MORPH_CHECK(s->narrative_seconds>0);
+    float clock=s->narrative_seconds;g.mode=GAME_PAUSED;api.step(s,&g,&f,&items);MORPH_CHECK(s->narrative_seconds==clock);
+    g.mode=GAME_WON;api.step(s,&g,&f,&items);MORPH_CHECK_NEAR(s->narrative_seconds,1.0f/60,.00001);
+    api.life.shutdown(s);
 }
 static void CheckPortal(void)
 {
@@ -67,4 +80,4 @@ static void CheckPortal(void)
     api.event(api.life.context,&event);api.life.reset_world(api.life.context,&g,NULL);MORPH_CHECK(EffectsInspect().particles==0);
     api.life.shutdown(api.life.context);api.life.shutdown(api.life.context);
 }
-int main(void){CheckInput();CheckPortal();puts("PASS ui-rules: commands, focus, battery, six continuous portals, one-shot signals, frozen pause and bounded particles");return 0;}
+int main(void){CheckNarrativeClock();CheckInput();CheckPortal();puts("PASS ui-rules: commands, focus, battery, six continuous portals, one-shot signals, frozen pause and bounded particles");return 0;}

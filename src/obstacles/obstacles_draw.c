@@ -92,28 +92,61 @@ static void Column(const ObstaclesState *s,const ObstacleColumn *c,bool top)
     }
     Segment(c,top,c->width*.34f,h-2,c->width*.78f,h-5,2,GetColor(palette->accent));
 }
-static void Hazard(const ObstacleHazard *h,const WorldPalette *palette,double clock,bool debug)
+static void Hazard(const ObstacleHazard *h,const WorldPalette *palette,double clock,bool debug,float warning_steps)
 {
-    Vector2 center={h->x,h->y};bool warning=h->age<85;float alpha=warning?.4f:1;
+    Vector2 center={h->x,h->y};bool warning=h->age<warning_steps;float alpha=warning?.4f:1;
     if(warning) {
         Color color=Fade(GetColor(palette->accent),.55f+.2f*(float)sin(clock*.15));
         for(int i=0;i<8;i++)DrawRing(center,29,30,i*45.0f,i*45.0f+23,6,color);
         DrawText("!",(int)h->x-3,(int)h->y-47,20,color);
-        if(h->type==HAZARD_ICE)DrawLineEx((Vector2){h->x,h->y-20},(Vector2){h->x,h->y+40},1,Fade(color,.45f));
+        DrawLineEx((Vector2){h->x-70,h->y},(Vector2){h->x-20,h->y},1,Fade(color,.45f));
     }
     if(h->type==HAZARD_ICE) {
+        DrawCircleV(center,h->radius,Fade(GetColor(0xc2f1ffff),.25f*alpha));
+        DrawCircleLinesV(center,h->radius,Fade(GetColor(0xe9ffffff),alpha));
         GameVec2 points[4];ObstaclesIcePolygon(h,points,4);Poly(points,4,Fade(GetColor(0xc2f1ffff),alpha));
         DrawLineEx((Vector2){h->x,h->y-h->radius},(Vector2){h->x,h->y+h->radius},1,Fade(WHITE,alpha));
         if(debug)for(int i=0;i<4;i++)DrawLineV((Vector2){points[i].x,points[i].y},(Vector2){points[(i+1)%4].x,points[(i+1)%4].y},LIME);
     } else {
-        Color color=h->type==HAZARD_JELLY?GetColor(0xbcb6eeff):GetColor(0xffb451ff);
+        Color color=h->type==HAZARD_JELLY?GetColor(0xbcb6eeff):h->type==HAZARD_WIND?GetColor(0xc9f6ffff):
+            h->type==HAZARD_VINE?GetColor(0x728b46ff):h->type==HAZARD_ROCK?GetColor(0xc69a70ff):GetColor(0xffb451ff);
         DrawCircleGradient((int)h->x,(int)h->y,30,Fade(color,.18f*alpha),Fade(color,0));
         /* Circular visible core is the circular collider; halo is decoration. */
         DrawCircleV(center,h->radius,Fade(color,alpha));
         if(h->type==HAZARD_JELLY) {
             DrawCircleV((Vector2){h->x-3,h->y-4},7,Fade(GetColor(0xf2dbfaff),alpha));
-            for(int i=-1;i<=1;i++)DrawLineEx((Vector2){h->x+i*6,h->y+3},(Vector2){h->x+i*5,h->y+11},2,Fade(GetColor(0x7b65aaff),alpha));
+            for(int i=-1;i<=1;i++)DrawSplineSegmentBezierCubic((Vector2){h->x+i*6,h->y+2},
+                (Vector2){h->x+i*5+3*sinf((float)clock*.1f+i),h->y+5},
+                (Vector2){h->x+i*5-3,h->y+9},(Vector2){h->x+i*5,h->y+12},2,Fade(GetColor(0x7b65aaff),alpha));
+        } else if(h->type==HAZARD_WIND){
+            DrawCircleV(center,12,Fade(GetColor(0x587c9fff),alpha));
+            for(int i=0;i<3;i++){
+                float start=(float)clock*4+i*120;
+                DrawRing(center,3+i*3,4+i*3,start,start+210,16,Fade(color,alpha));
+            }
+            for(int i=0;i<3;i++){
+                float a=(float)clock*.08f+i*2.1f;
+                DrawCircle((int)(h->x+cosf(a)*22),(int)(h->y+sinf(a)*22),1.5f,Fade(color,.35f*alpha));
+            }
+        } else if(h->type==HAZARD_VINE){
+            DrawCircleV(center,12,Fade(GetColor(0x344d35ff),alpha));
+            for(int i=0;i<3;i++)DrawRing(center,3+i*3,5+i*3,(float)clock*1.5f+i*100,(float)clock*1.5f+i*100+230,14,Fade(color,alpha));
+            for(int i=0;i<6;i++){
+                float a=i*PI/3+(float)clock*.02f;
+                Vector2 tip={h->x+cosf(a)*15,h->y+sinf(a)*15};
+                Triangle(tip,(Vector2){h->x+cosf(a-.25f)*10,h->y+sinf(a-.25f)*10},
+                    (Vector2){h->x+cosf(a+.25f)*10,h->y+sinf(a+.25f)*10},Fade(GetColor(0xe5d49aff),alpha));
+            }
+        } else if(h->type==HAZARD_ROCK){
+            DrawPoly(center,6,13,(float)clock*2,Fade(GetColor(0x755a51ff),alpha));
+            DrawLineEx((Vector2){h->x-8,h->y-8},(Vector2){h->x+2,h->y-2},2,Fade(color,alpha));
+            DrawLineEx((Vector2){h->x+2,h->y-2},(Vector2){h->x-3,h->y+9},2,Fade(color,alpha));
+            for(int i=0;i<4;i++)DrawCircle((int)h->x+19+i*5,(int)(h->y+sin(clock*.07+i)*6),3-i*.5f,Fade(color,(.3f-i*.05f)*alpha));
         } else {
+            for(int i=0;i<5;i++){
+                float drift=fmodf((float)clock*1.5f+i*6,30);
+                DrawCircle((int)(h->x+12+drift),(int)(h->y+sinf((float)clock*.1f+i)*8),3*(1-drift/30),Fade(color,(1-drift/30)*alpha*.5f));
+            }
             Triangle((Vector2){h->x-8,h->y+7},(Vector2){h->x+2,h->y-11},(Vector2){h->x+9,h->y+6},Fade(GetColor(0xffed9dff),alpha));
         }
         if(debug)DrawCircleLinesV(center,h->radius,LIME);
@@ -130,9 +163,9 @@ void ObstaclesDraw(const ObstaclesState *s,const GameState *game)
             Triangle((Vector2){center.x-3,center.y-3},(Vector2){center.x,center.y-7},(Vector2){center.x+3,center.y-3},GetColor(p->accent));
         }
     }
-    for(unsigned i=0;i<s->hazard_count;i++)Hazard(&s->hazards[i],p,s->clock,s->debug);
+    for(unsigned i=0;i<s->hazard_count;i++)Hazard(&s->hazards[i],p,s->clock,s->debug,ObstaclesHazardSettings(s->world)->warning);
     if(s->environment.active) {
-        const char *names[]={"Rajada de vento","Corrente maritima","Galhos em movimento","Nevasca e gelo em queda","Redemoinho de areia","Erupcao vulcanica"};
+        const char *names[]={"Redemoinho de vento","Corrente e aguas-vivas","Cipos espinhosos","Nevasca e estilhacos","Rochas e poeira","Erupcao vulcanica"};
         DrawRectangleRounded((Rectangle){302,461,356,30},.3f,6,GetColor(0x10283de0));
         char label[96];snprintf(label,sizeof(label),"%s%s",s->environment.warning?"Atencao: ":"",names[s->world]);
         DrawText(label,480-MeasureText(label,14)/2,469,14,GetColor(p->accent));

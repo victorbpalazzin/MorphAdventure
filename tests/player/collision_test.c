@@ -39,6 +39,9 @@ int main(void)
     MORPH_CHECK(!CollisionCirclePolygon((GameVec2){0,0},1,bad,3));
     /* Large finite values must not overflow float intermediates into false hits. */
     MORPH_CHECK(!CollisionCircleRect((GameVec2){-FLT_MAX,0},1,(GameRect){FLT_MAX,0,1,1}));
+    MORPH_CHECK(CollisionSweptCircle((GameVec2){250,200},(GameVec2){100,200},12,(GameVec2){180,200},18));
+    MORPH_CHECK(!CollisionSweptCircle((GameVec2){250,170},(GameVec2){100,170},12,(GameVec2){180,200},18));
+    MORPH_CHECK(!CollisionSweptCircle((GameVec2){NAN,200},(GameVec2){100,200},12,(GameVec2){180,200},18));
     puts("PASS player-collisions: edges, corners, winding, concavity, repeated vertices, invalid inputs.");
     return 0;
 }

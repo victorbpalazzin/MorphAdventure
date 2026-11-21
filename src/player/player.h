@@ -7,4 +7,6 @@
 PlayerApi PlayerModuleCreate(void);
 /* Development overlay only; init turns it off. Never changes collision geometry. */
 void PlayerSetDebugHitbox(bool enabled);
+/* Pure narrative drawing: no mutation of the playable character. */
+void PlayerDrawPortrait(int world,GameVec2 position,float scale,float seconds,bool happy);
 #endif

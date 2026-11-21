@@ -24,5 +24,5 @@ ItemsApi ItemsModuleCreate(void);
 ItemEnergyView ItemsEnergy(void); /* copy: UI cannot mutate the module */
 ItemsSnapshot ItemsInspect(void); /* copy for integration/debugging */
 const ItemBoostDefinition *ItemsBoostDefinition(BoostType type);
-void ItemsSetSeed(uint32_t seed); /* deterministic subsequent resets */
+void ItemsSetSeed(uint32_t seed); /* session seed; combined with run_id/world, reproducible in tests */
 #endif

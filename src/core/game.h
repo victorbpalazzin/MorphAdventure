@@ -7,7 +7,7 @@ typedef struct Game {
     GameModules modules;
     const WorldConfig *config;
     double accumulator;
-    bool pending_impulse, ready, transition_switched;
+    bool life_awarded, pending_attack, pending_impulse, ready, transition_switched;
     unsigned missing_modules, initialized_modules;
     char error[192];
 } Game;

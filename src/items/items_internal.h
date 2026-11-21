@@ -4,10 +4,10 @@
 typedef struct ActiveItemBoost { BoostType type; double seconds; } ActiveItemBoost;
 typedef struct ItemsState {
     int world;
-    bool valid,collected_ids[MORPH_MAX_ENERGY];
+    bool life_collected,valid,collected_ids[MORPH_MAX_ENERGY];
     unsigned collected,required,fragment_count,power_count,boost_count,next_power_id;
-    uint32_t seed;
-    float fragment_timer,boost_timer,fragment_interval;
+    uint32_t seed,boost_seed;
+    float life_timer,fragment_timer,boost_timer,fragment_interval;
     ActiveItemBoost boosts[MORPH_MAX_BOOSTS];
     ItemFragmentView fragments[ITEMS_FRAGMENT_CAPACITY];
     ItemPowerView powers[ITEMS_POWER_CAPACITY];

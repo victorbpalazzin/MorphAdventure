@@ -84,7 +84,7 @@ static void Ring(Art t,float radius,unsigned color,float width)
     Line(t,points,96,color,width,true);
 }
 
-void PlayerDrawArt(const PlayerState *player,const GameState *game,const ItemsView *items)
+static void DrawArt(const PlayerState *player,const GameState *game,const ItemsView *items,int mood)
 {
     const PlayerView *v=&player->view;
     if(v->scale<=0) return;
@@ -92,9 +92,12 @@ void PlayerDrawArt(const PlayerState *player,const GameState *game,const ItemsVi
     /* simulation_steps advances only during active modes, never in draw/pause. */
     double steps=(double)game->simulation_steps;
     float wing=(float)sin(steps*0.23)*0.6f;
-    bool magnet=false;
-    for(unsigned i=0;i<items->boost_count && i<MORPH_MAX_BOOSTS;i++)
+    bool magnet=false,phase=false;
+    for(unsigned i=0;i<items->boost_count && i<MORPH_MAX_BOOSTS;i++){
         if(items->boosts[i].type==BOOST_MAGNET) magnet=true;
+        if(items->boosts[i].type==BOOST_PHASE) phase=true;
+    }
+    if(phase){Ring(t,29+(float)sin(steps*.12)*3,0x91efff,2);t.opacity=.45f;}
     if(items->shield || magnet)
         Ring(t,items->shield?33:40+(float)sin(steps*0.1)*4,items->shield?0xb0f1ff:0xffb2e0,3);
     t=Rotate(t,v->rotation);
@@ -146,10 +149,28 @@ void PlayerDrawArt(const PlayerState *player,const GameState *game,const ItemsVi
     }
     float eyeX=game->world==2?3:game->world==5?17:12;
     float eyeY=game->world==2?-15:game->world==5?-10:game->world==4?-5:-7;
-    Ellipse(t,eyeX,eyeY,3,4,0x142b42,0);Ellipse(t,eyeX+1,eyeY-1,1,1.4f,0xfffaf0,0);
+    if(mood==1){
+        Ellipse(t,eyeX,eyeY,5,6,0xfffaf0,0);Ellipse(t,eyeX+1,eyeY,2.4f,3.5f,0x142b42,0);
+        LINE(t,0x23324a,2,{eyeX-5,eyeY-9},{eyeX+4,eyeY-6});
+        Ellipse(t,eyeX-3,eyeY+12,2.5f,3.5f,0x23324a,0);
+    }else if(mood==2){
+        LINE(t,0x23324a,2.5f,{eyeX-4,eyeY+1},{eyeX,eyeY-3},{eyeX+4,eyeY+1});
+        LINE(t,0x23324a,2,{eyeX-7,eyeY+10},{eyeX-3,eyeY+13},{eyeX+1,eyeY+10});
+        Ellipse(t,eyeX-5,eyeY+6,4,2,0xef9eae,0);
+    }else{Ellipse(t,eyeX,eyeY,3,4,0x142b42,0);Ellipse(t,eyeX+1,eyeY-1,1,1.4f,0xfffaf0,0);}
     if(player->debug_hitbox) {
         /* Collision remains unscaled in the contract. Portal is non-damaging. */
         DrawCircleLinesV((Vector2){v->position.x,v->position.y},v->collision_radius,LIME);
         DrawCircleLinesV((Vector2){v->position.x,v->position.y},v->visual_radius,SKYBLUE);
     }
+}
+
+void PlayerDrawArt(const PlayerState *player,const GameState *game,const ItemsView *items)
+{DrawArt(player,game,items,0);}
+void PlayerDrawPortrait(int world,GameVec2 position,float scale,float seconds,bool happy)
+{
+    PlayerState p={0};p.view.position=position;p.view.scale=scale;
+    p.view.rotation=sinf(seconds*2+world)*.045f;
+    GameState g={0};g.world=world;g.simulation_steps=(uint64_t)(seconds*60);
+    ItemsView items={0};DrawArt(&p,&g,&items,happy?2:1);
 }

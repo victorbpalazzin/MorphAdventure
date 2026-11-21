@@ -1,6 +1,6 @@
 # Contrato de integração — Morph Adventure / C99 / raylib 5.5
 
-**Versão 1. Entrega inicial da pessoa 1.** Este documento e os cabeçalhos de `src/core/` são a base compartilhada. O jogo completo ainda depende das pessoas 2–6. A pessoa 7 é dona do build definitivo, dos testes de campanha e do pacote de distribuição.
+**Versão 5. Grootspectro e perigos horizontais integrados localmente.** Os seis módulos reais estão conectados. O núcleo coordena a campanha e a batalha final. Os cabeçalhos de src/core/ e as extensões ao final deste documento são a fonte de verdade; as notas das entregas iniciais abaixo registram a origem da arquitetura.
 
 ## Referência e escopo
 
@@ -24,7 +24,9 @@
 
 O estado central é mutável apenas pelo coordenador. Callbacks recebem `const GameState *`; nunca remover `const`, guardar o endereço da entrada temporária nem editar vidas/pontos/mundo por conta própria. Cada módulo mantém seu estado privado através de `void *context`. Não copiar tipos do contrato para outros cabeçalhos. Mudanças incompatíveis exigem acordo e incremento de `MORPH_CONTRACT_VERSION`.
 
-Limites de interface: 6 mundos, 24 fragmentos, 2 boosts ativos, 128 eventos por passo. Capacidade excedida da fila causa erro explícito; não descartar recompensa silenciosamente. Pessoa 4 e pessoa 5 devem limitar suas próprias listas, reciclar objetos fora da tela e registrar os limites de entidades no handoff.
+Meta dos mundos: **GameEnergyRequired(world)** consulta a tabela, de 0 a 5: **4/6/8/10/12/16**. Incremento de 2 até Terra e de 4 no Fogo, conforme sequência solicitada. A capacidade alocada é um teto, não a meta.
+
+Limites de interface: 6 mundos, capacidade para 24 fragmentos, 2 boosts ativos, 128 eventos por passo. Capacidade excedida da fila causa erro explícito; não descartar recompensa silenciosamente. Pessoa 4 e pessoa 5 devem limitar suas próprias listas, reciclar objetos fora da tela e registrar os limites de entidades no handoff.
 
 ## Arquivos do núcleo e como conectar módulos
 
@@ -84,7 +86,7 @@ Pessoa 4 fornece `config(context, world)` para todos os índices 0..5, mesmo que
 - Simulação fixa: `MORPH_STEP_SECONDS = 1/60`. `FrameContext.normal_steps = 1`; use valores por passo do HTML para física.
 - `normal_seconds = ui_seconds = 1/60`. Boosts duram segundos normais. `world_steps = 1 × world_scale`; `world_seconds = normal_seconds × world_scale`.
 - Escala normal é 1; slow motion é 0,68. O core atualiza timers dos itens antes de consultar a escala, e aplica a escala uma vez. Física do personagem usa `normal_steps`, não `world_steps`.
-- O core integra `speed`, `distance`, `scroll` e `world_steps`. Obstáculos/itens movem suas posições com `frame.scroll_delta`, sem acrescentar de novo ao deslocamento global. Cenários consultam `state.scroll`.
+- O core integra `speed`, `scroll` e `world_steps`. `distance/minimum_distance` representa a fração coletada da bateria, sincronizada antes do ritmo e após a coleta; não exige tempo ou distância adicional. Obstáculos/itens movem suas posições com `frame.scroll_delta`, sem acrescentar de novo ao deslocamento global. Cenários consultam `state.scroll`.
 - `frame.pace` é o fator de ritmo calculado uma vez pelo coordenador. Pessoa 4 usa `config.obstacle_interval / (0.98 + (frame.pace - 1) × 0.55)` no spawn e não recalcula outro relógio de ritmo.
 - Trava longa: o acumulador limita o atraso recebido a 0,1 s e executa no máximo cinco passos por frame; excesso de atraso é descartado para evitar teleporte/espiral de atraso. Isso não é promessa de manter tempo de parede quando o computador não acompanha.
 - Perder foco pausa gameplay, portal ou transição; voltar exige P/Continuar. Nenhum tempo acumulado é reaplicado. `ui.input` continua disponível na pausa, mas callbacks de atualização não.
@@ -97,7 +99,7 @@ Pessoa 4 fornece `config(context, world)` para todos os índices 0..5, mesmo que
 
 1. Ações da UI/teclado e perda de foco são resolvidas antes do acumulador.
 2. Atualizar timers de boosts no tempo normal, consultar escala e multiplicador.
-3. Atualizar ritmo, velocidade, distância limitada, deslocamento contínuo e relógio do mundo.
+3. Sincronizar percurso com a fração de energia e atualizar ritmo, velocidade, deslocamento contínuo e relógio do mundo.
 4. Atualizar obstáculos/ambiente com a posição anterior do jogador, geometria móvel e permissão de spawn.
 5. Atualizar física com input pendente e força ambiental; ler `PlayerView` atualizado.
 6. Drenar obstáculos ultrapassados e aplicar pontos uma única vez.
@@ -135,12 +137,12 @@ Tabela da versão atual:
 
 | Mundo | speed | gap | interval | motion | frequency | duration_steps | event_interval | force |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Ar | 4.2 | 210 | 92 | 12 | .019 | 1500 | 440 | .065 |
-| Água | 4.6 | 202 | 86 | 16 | .021 | 2100 | 410 | .080 |
-| Floresta | 5.0 | 194 | 80 | 20 | .023 | 2700 | 380 | 0 |
-| Gelo | 5.4 | 186 | 74 | 24 | .025 | 3300 | 350 | .090 |
-| Terra | 5.8 | 178 | 68 | 28 | .027 | 3900 | 320 | .105 |
-| Fogo | 6.2 | 170 | 62 | 32 | .029 | 4500 | 290 | 0 |
+| Ar | 4.2 | 210 | 78.2 | 12 | .019 | 1500 | 440 | .065 |
+| Água | 4.6 | 202 | 73.1 | 16 | .021 | 2100 | 410 | .080 |
+| Floresta | 5.0 | 194 | 68 | 20 | .023 | 2700 | 380 | 0 |
+| Gelo | 5.4 | 186 | 62.9 | 24 | .025 | 3300 | 350 | .090 |
+| Terra | 5.8 | 178 | 57.8 | 28 | .027 | 3900 | 320 | .105 |
+| Fogo | 6.2 | 170 | 52.7 | 32 | .029 | 4500 | 290 | 0 |
 
 `step(..., spawn)` só gera obstáculos/eventos especiais quando `spawn=true`. Entidades existentes continuam saindo. No modo PORTAL, apenas limpeza visual/deslocamento: cessar perigos, sem novo dano. Use `frame.scroll_delta` inclusive nesse modo (já reduzido a 35% pelo core).
 
@@ -152,7 +154,7 @@ Tabela da versão atual:
 
 `step_timers` usa segundos normais. `collect_step` usa deslocamento/tempo de mundo para geração, movimento e magnetismo conforme a referência, mantém IDs únicos e reposição de perdidos. Só emite `EVENT_FRAGMENT_COLLECTED` e `EVENT_BOOST_COLLECTED`; o core emite outros eventos de feedback. Use `GameEnqueueEvent`; propague `overflow` se falhar. `consume_shield` retorna true uma única vez e remove o efeito. Nenhum callback altera vidas/pontos/mundo.
 
-`reset_world` limpa energia/itens/boosts. Portal e transição congelam timers dos boosts como no HTML; x2 presente ao entrar no portal vale para +100. Regras: escudo uma colisão, ímã 5 s, slow 4 s, x2 7 s; máximo dois; novo terceiro substitui o ativo mais antigo; renovar tipo existente não duplica efeitos.
+`reset_world` limpa energia/itens/boosts. Portal e transição congelam timers dos boosts como no HTML; x2 presente ao entrar no portal vale para +100. Regras: escudo uma colisão, ímã 7 s, slow 4 s, x2 7 s; máximo dois; novo terceiro substitui o ativo mais antigo; renovar tipo existente não duplica efeitos.
 
 ### UI e Effects / pessoa 6
 
@@ -161,7 +163,7 @@ UI transforma cliques em comandos; ações são retornadas ao core. Para derrota
 Effects recebe eventos de feedback e atualiza partículas com limite de capacidade. `begin_portal` começa a animação; `step_portal` controla seu relógio e retorna sinais na sequência:
 
 1. `PORTAL_SIGNAL_ENTERED` quando o personagem entra: o core paga +100 com x2 e muda PORTAL → TRANSITION.
-2. `PORTAL_SIGNAL_BLACKOUT` no instante opaco: se mundo 5, core muda para WON. Caso contrário, incrementa mundo uma vez e reseta player/worlds/obstacles/items/ui, **preservando vidas e score**.
+2. `PORTAL_SIGNAL_BLACKOUT` no instante opaco: se mundo 5, core inicia GAME_BOSS com as vidas e boosts atuais. Caso contrário, incrementa mundo uma vez e reseta player/worlds/obstacles/items/ui, **preservando vidas e score**.
 3. `switch_world_under_fade` limpa partículas/atualiza paleta preservando a animação de fade; não reiniciar o timer do portal. Em seguida, `portal_pose` deve liberar o controle do jogador (`overrides_player=false`).
 4. `PORTAL_SIGNAL_FADE_DONE` ao revelar o novo mundo: core muda TRANSITION → PLAY.
 
@@ -174,12 +176,13 @@ Ordem de desenho: cenário → obstáculos → itens → portal → personagem �
 ```text
 INTRO --START--> PLAY
 PLAY --vidas=0--> LOST --RETRY--> PLAY (nova partida)
-PLAY --meta + percurso + caminho livre--> PORTAL
+PLAY --bateria completa + caminho livre--> PORTAL
 PORTAL --ENTERED--> TRANSITION
 TRANSITION --BLACKOUT--> próximo mundo, ainda em TRANSITION
 TRANSITION --FADE_DONE--> PLAY
-TRANSITION --BLACKOUT no Fogo--> WON --RETRY--> PLAY (nova partida)
-PLAY/PORTAL/TRANSITION --P ou perda de foco--> PAUSED
+TRANSITION --BLACKOUT no Fogo--> BOSS (introdução → combate → derrota do boss)
+BOSS --terceiro raio + animação de derrota concluída--> WON --RETRY--> PLAY (nova partida)
+PLAY/PORTAL/TRANSITION/BOSS --P ou perda de foco--> PAUSED
 PAUSED --P ou RESUME--> modo anterior, sem salto de tempo
 qualquer modo normal --RESTART--> INTRO (nova partida)
 violação de contrato --> ERROR (diagnóstico; requer correção do módulo)
@@ -195,3 +198,158 @@ violação de contrato --> ERROR (diagnóstico; requer correção do módulo)
 - Teste real em outros sistemas e celulares. A base desta entrega não promete suporte nativo mobile.
 
 Para a pessoa 7, os comandos exatos já executados, o teste puro C e o status desta entrega estão em `docs/handoffs/pessoa-1.md`.
+
+## Extensão v2: Grootspectro
+
+Implementação central documentada em docs/handoffs/grootspectro.md. Os seis módulos
+reais já estão conectados por composition.c quando MORPH_MODULES_LINKED=ON.
+Os trechos anteriores de entregas pendentes são contexto histórico da versão 1.
+
+GameInput.attack_pressed é uma borda de J, enfileirada até um único passo fixo,
+limpa em pausa/foco/reset. GameState.boss contém dados limitados (24 projéteis,
+um coletável) sob controle do core. Nenhuma assinatura de factory mudou. Recompilar
+juntos todos os módulos: MORPH_CONTRACT_VERSION=5 impede misturar tabelas antigas.
+
+BossBegin/Step/Fire/Touches são helpers puros em boss/. CombatEnergyReset/Step/Fraction
+pertencem a items/ e mantêm somente a energia de combate. A bateria convencional
+não é reiniciada nem usada para atacar. MORPH_COMBAT_ENERGY_DEFAULT=4 configura cada
+carga; há três segmentos. Coleta paga 35 através de Reward, com x2 vigente.
+
+No blackout do Fogo, reset apenas de pose, obstáculos e efeitos. Não repor vidas,
+nem pontuação, boosts ou energia de progressão. Introdução dura 180 passos normais;
+física/dano suspensos. Combate usa física normal, dano/invulnerabilidade/escudo centrais;
+boosts expiram em tempo normal. Projéteis e coletáveis usam world_steps já escalados.
+O cenário desacelera suavemente. Pausa/foco congelam todos os relógios.
+
+Raio: carga visual 35 passos, impacto único, término no passo 85; jogador paira
+durante o disparo e projéteis são dissipados. A bateria esvazia ao terminar, não
+permite segundo disparo durante a animação. Terceiro impacto inicia 210 passos de
+desintegração, sem ataques; só então GAME_WON. Retry/restart apagam todo estado do boss.
+Desenho de effects/UI é somente leitura, sem alocação dinâmica ou assets adicionais.
+
+## Rebalanceamento dos percursos
+
+Intervalos multiplicados por 0,85, mantendo velocidades, aberturas e ritmo central.
+Perigos: redemoinho, água-viva, massa de cipós espinhosos, estilhaço de gelo,
+rocha e bola de fogo. O comportamento horizontal da extensão v3 abaixo substitui
+as antigas âncoras, queda vertical e remoções para proteger itens/passagens.
+Totens adjacentes preservam o envelope comum mínimo de 80 px.
+
+Reposição de fragmentos dos mundos: primeiro após 180 passos de mundo; intervalo
+seguinte limitado a 180 passos (mínimo 125), para que diminuir a meta não aumente
+a espera. O slow afeta esse relógio uma única vez; não altera a bateria do boss.
+
+## Extensão v3: trajetórias horizontais e contato consumido
+
+BossProjectile inclui previous e spent. BossRegisterContact é chamado pelo core
+após Damage aceitar o impacto, inclusive absorção por escudo. Invulnerabilidade
+rejeita dano; o tiro continua visível. Colisão usa CollisionSweptCircle, compartilhada
+com obstacles, para testar o segmento do passo contra o círculo do jogador.
+BossState inclui burst_remaining/burst_index/burst_timer para a sequência da fase 3.
+Nenhuma assinatura de factory foi alterada. Recompilar todos os módulos juntos.
+
+Tiros do boss mantêm a altura anunciada por 65 passos de mundo. Velocidades-base
+3,8/4,6/5,4 px/passo, intervalos-base 205/155/115 passos, respectivamente 1/2/3 tiros;
+na fase 3 os tiros são separados por 18 passos. Variação nas fases 2/3: até +0,4.
+Alturas ficam entre 185 e 420 px, separadas por 110 px, abaixo do HUD.
+BossFire dissipa tiros explicitamente; fora disso, remoção somente com x+raio<0
+ou reset/fim da batalha. Energia presente nunca apaga tiros.
+
+ObstaclesHazard usa id próprio, previous, base_y e speed; não possui âncora.
+ObstaclesHazardSettings(world) oferece velocidade, intervalo, oscilação, aviso e
+limite simultâneo. Todos usam world_steps uma única vez; física permanece normal.
+Primeiro lançamento após 180 passos, com tentativas adiadas em 20 quando não há
+espaço. Geração considera envelopes dos totens previstos na chegada ao jogador,
+reserva ao menos 52 px no lado livre e evita item protegido na origem. Após lançado,
+o perigo cruza totens/itens e não é apagado por eles, por idade ou pela posição do
+jogador. Somente saída completa à esquerda ou reset/transição o remove.
+As consultas de coleta verificam terreno/totens; perigos móveis não invalidam itens.
+
+| Mundo | px/passo | intervalo | aviso | oscilação px | máximo |
+|---|---:|---:|---:|---:|---:|
+| Ar | 5,58 | 540 | 75 | 4 | 2 |
+| Água | 6,12 | 540 | 72 | 6 | 2 |
+| Floresta | 6,66 | 540 | 70 | 5 | 2 |
+| Gelo | 7,20 | 540 | 68 | 2 | 2 |
+| Terra | 7,74 | 540 | 65 | 4 | 3 |
+| Fogo | 8,28 | 540 | 62 | 6 | 3 |
+
+Velocidade dos perigos varia ±4% por lançamento. Parâmetros em obstáculos.c.
+A verificação de rotas amostradas não prova que toda combinação futura é evitável;
+balanceamento humano permanece necessário. Ver handoffs/projeteis-horizontais.md.
+
+## Percurso ligado à bateria
+
+O percurso acompanha exatamente GameEnergyFraction: 0% sem coleta, progresso proporcional
+a cada fragmento e 100% na coleta do último. Não existe espera por distância mínima.
+Novos obstáculos param após completar a bateria; os já lançados continuam até liberar
+o caminho, preservando a entrada segura no portal. O cenário segue scroll normalmente.
+A bateria de combate do boss permanece independente.
+
+## Extensão v4: vida extra e ímã
+
+BOOST_LIFE é um coletável instantâneo, fora dos slots e da seleção aleatória de
+boosts. Aparece após metade da bateria nos mundos 2, 4 e 6; posição usa a consulta
+de passagem segura. Se perdido/inseguro, pode reaparecer (tentativas a cada 90
+passos de mundo). Uma coleta por mundo, sem duração e sem multiplicação por x2.
+Items emite EVENT_BOOST_COLLECTED; apenas o core incrementa vidas e rejeita duplicatas
+com life_awarded, reiniciado em BeginWorld. Os efeitos reutilizam a cor do item.
+O HUD mostra até seis corações, o máximo natural por partida. O bônus é opcional:
+não bloqueia o portal se não for coletado. Ímã dura 7 segundos normais, congela na
+pausa e renova para 7 s; mantém as regras existentes de limite de dois boosts.
+
+## Extensão v5: intangibilidade
+
+BOOST_PHASE participa do mesmo sorteio uniforme dos boosts não ativos, com o
+mesmo relógio de geração (360–680 passos iniciais, depois 500–940). A vida extra segue
+separada. Dura 7 segundos normais; pausa congela e renovar restaura 7 segundos.
+Ocupa um dos dois slots e segue substituição do mais antigo. Damage no core
+rejeita impactos de totens, perigos, chão e boss antes de consumir escudo ou
+aplicar impulso/invulnerabilidade. Não altera física, coleta ou geometria dos perigos.
+PlayerDrawArt usa transparência e halo ciano; HUD usa definição e timer de items.
+
+## Energia preservada ao cruzar perigos horizontais
+
+PassageQuery.is_safe não rejeita itens por sobreposição com perigos móveis.
+Estes continuam causando dano ao jogador por touches_player, mas não removem
+energia nem benefícios. Só o contato do jogador gera coleta. Saída da tela e
+reposicionamento por terreno sólido continuam reoferecendo itens sem contar coleta.
+Regressão em items-passages cobre os seis perigos atravessando energia e escudo.
+
+## Sorteio por partida
+
+O executável inicializa ItemsSetSeed com relógio e aleatoriedade da sessão. Reset
+combina essa semente com run_id e mundo usando mistura de bits; reiniciar não repete
+a sequência anterior. Testes fixam a semente para reproduzir problemas. Boosts têm
+fluxo pseudoaleatório separado dos fragmentos. Cada escolha é uniforme entre os
+cinco boosts não ativos, sem tipo fixo por mundo e sem ordem predefinida; repetições
+são possíveis. Primeiro intervalo 360–680 passos de mundo, seguintes 500–940,
+mantendo médias anteriores (520/720). Slow e pausa continuam controlando o relógio.
+Altura varia dentro das passagens seguras. Coração continua reservado aos mundos
+2/4/6 e não participa desse sorteio.
+
+Ajuste de dificuldade: perigos horizontais dos seis mundos com velocidade-base
+reduzida em 10% e intervalo entre lançamentos aumentado em 20%. Preservados
+aviso, oscilação, limite simultâneo, variação de ±4% e atraso inicial de 180 passos.
+
+Ajuste adicional: intervalos multiplicados por 1,15 sobre o aumento anterior
+de 20%, totalizando 38% acima dos intervalos originais. Velocidades preservadas.
+
+Novo ajuste: mais 30% sobre os intervalos vigentes (fator acumulado 1,794
+sobre os originais). Velocidades e atraso inicial preservados.
+
+Padronização vigente: intervalo-base de 540 passos (9 segundos sem slow motion)
+entre perigos horizontais em TODOS os seis mundos, substituindo os ajustes
+percentuais anteriores. Geração pode ser adiada pela segurança da passagem.
+
+## Cenas narrativas: abertura e vitória
+
+O elenco das cenas contém os seis personagens, conforme confirmação do usuário.
+UiNarrativeDraw compõe duas ilustrações vetoriais usando PlayerDrawPortrait e
+BossDrawPortrait; não altera estado do jogador/boss nem carrega assets externos.
+UiButtons é a fonte única de hitboxes/ações para as telas novas. INTRO oferece
+Iniciar Aventura; WON oferece Jogar Novamente e Menu Principal. Pausa/derrota
+preservam seus layouts. Títulos, narrativa e pontuação são desenhados fora da arte.
+O core chama ui.step em INTRO/WON com tempo de apresentação limitado a 0,1 s por
+quadro. Isso não avança simulação, física, itens, vidas ou boss. Sem foco não avança;
+pausa permanece congelada. Draw é somente leitura. Vitória ainda exige BOSS_DONE.

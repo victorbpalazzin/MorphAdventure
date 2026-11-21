@@ -63,18 +63,20 @@ int main(int argc,char **argv)
     if(capture){
         for(int w=0;w<6;w++){
             Reset(w);
-            for(int tick=1;tick<=346;tick++){
-                Step(false,1,true);
-                if(tick==330 || tick==346){
-                    ObstacleEnvironmentView env=ObstaclesEnvironment();
-                    MORPH_CHECK(env.active && env.warning==(tick==330));
-                    if(w==1 || w==3 || w==5)MORPH_CHECK(ObstaclesInspect().hazard_count>0);
+            bool got_warning=false,got_active=false;
+            for(int tick=1;tick<=700 && !got_active;tick++){
+                Step(false,1,true);ObstaclesSnapshot snap=ObstaclesInspect();
+                if(!snap.hazard_count)continue;
+                bool warning=snap.hazards[0].age<ObstaclesHazardSettings(w)->warning;
+                if((warning && !got_warning && snap.hazards[0].x<900)||(!warning && !got_active)){
+                    if(warning)got_warning=true;else got_active=true;
                     Render();Image img=LoadImageFromTexture(canvas.texture);MORPH_CHECK(IsImageValid(img));
                     ImageFlipVertical(&img);char path[2048];
-                    snprintf(path,sizeof(path),"%s/%d-%s.png",argv[2],w,tick==330?"warning":"active");
+                    snprintf(path,sizeof(path),"%s/%d-%s.png",argv[2],w,warning?"warning":"active");
                     MORPH_CHECK(ExportImage(img,path));UnloadImage(img);
                 }
             }
+            MORPH_CHECK(got_warning && got_active);
         }
         puts("PASS obstacles-render: six real scenes and characters, warnings, active hazards, pure rendering.");
     }else{

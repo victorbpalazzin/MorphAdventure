@@ -53,7 +53,7 @@ static void Reset(void *context,const GameState *state,const WorldConfig *config
 static void Step(void *context,const GameState *state,const FrameContext *frame)
 {
     WorldScene *s=context;
-    if(!s->ready || (state->mode!=GAME_PLAY && state->mode!=GAME_PORTAL && state->mode!=GAME_TRANSITION)) return;
+    if(!s->ready || (state->mode!=GAME_PLAY && state->mode!=GAME_PORTAL && state->mode!=GAME_TRANSITION && state->mode!=GAME_BOSS)) return;
     if(isfinite(frame->world_steps) && frame->world_steps>0) s->visual_steps+=frame->world_steps;
 }
 static void Draw(void *context,const GameState *state)

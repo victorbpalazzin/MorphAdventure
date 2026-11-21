@@ -13,7 +13,7 @@ static void DrawPure(PlayerApi p,GameState *g,ItemsView *items)
 }
 static void Atlas(PlayerApi p,GameState *g,ItemsView *items)
 {
-    const char *columns[]={"Asa: fase 0","Asa: fase 7","Escudo","Ima","Dano / hitbox"};
+    const char *columns[]={"Asa: fase 0","Intangivel","Escudo","Ima","Dano / hitbox"};
     DrawText("MORPH ADVENTURE | Pessoa 2 | personagens isolados",24,14,22,RAYWHITE);
     DrawText("Mesmas formas do HTML. Verde: colisao 18 | Azul: raio visual 23",24,43,16,LIGHTGRAY);
     for(int col=0;col<5;col++) DrawText(columns[col],178+col*200,78,17,SKYBLUE);
@@ -28,7 +28,8 @@ static void Atlas(PlayerApi p,GameState *g,ItemsView *items)
             }
             p.set_portal_pose(p.life.context,(PortalPose){true,{240+col*200.0f,145+world*96.0f},1.15f,0});
             *items=(ItemsView){0};items->shield=col==2;
-            if(col==3){items->boost_count=1;items->boosts[0]=(BoostView){BOOST_MAGNET,5};}
+            if(col==3){items->boost_count=1;items->boosts[0]=(BoostView){BOOST_MAGNET,7};}
+            if(col==1){items->boost_count=1;items->boosts[0]=(BoostView){BOOST_PHASE,7};}
             PlayerSetDebugHitbox(col==4);DrawPure(p,g,items);
         }
     }

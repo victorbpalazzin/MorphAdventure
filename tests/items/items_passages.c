@@ -1,12 +1,45 @@
 /* Real obstacle/item modules. Teleported collector tests opportunities, not flight skill. */
 #include "items/items.h"
+#include "items/items_internal.h"
+#include "obstacles/obstacles_internal.h"
 #include "obstacles/obstacles.h"
 #include "core/game.h"
 #include "morph_check.h"
+static void CheckHazardsPreserveItems(ItemsApi items,ObstaclesApi obstacles)
+{
+    const ObstacleHazardType types[]={HAZARD_WIND,HAZARD_JELLY,HAZARD_VINE,HAZARD_ICE,HAZARD_ROCK,HAZARD_FIRE};
+    for(int w=0;w<6;w++){
+        GameState g={.mode=GAME_PLAY,.world=w};const WorldConfig *cfg=obstacles.config(obstacles.life.context,w);
+        items.life.reset_world(items.life.context,&g,cfg);obstacles.life.reset_world(obstacles.life.context,&g,cfg);
+        ItemsState *is=items.life.context;ObstaclesState *os=obstacles.life.context;
+        is->fragment_timer=is->boost_timer=10000;
+        is->fragments[0]=(ItemFragmentView){0,{500,250},23,0,0};is->fragment_count=1;
+        is->powers[0]=(ItemPowerView){1,BOOST_SHIELD,{500,250},21};is->power_count=1;
+        os->hazards[0]=(ObstacleHazard){.type=types[w],.id=1,.x=600,.y=250,.base_y=250,.previous={600,250},.age=100,.radius=15,.speed=6};os->hazard_count=1;
+        FrameContext f={.normal_steps=1,.world_steps=1,.normal_seconds=1.0f/60,.pace=1};
+        PlayerView p={.position={180,42},.visual_radius=23,.collision_radius=18};bool crossed=false;
+        for(int tick=0;tick<35;tick++){
+            obstacles.step(obstacles.life.context,&g,&f,p,false);
+            GameEventBuffer events={0};items.collect_step(items.life.context,&g,&f,p,obstacles.passages(obstacles.life.context),&events);
+            MORPH_CHECK(events.count==0 && !events.overflow && is->collected==0);
+            MORPH_CHECK(is->fragment_count==1 && is->fragments[0].id==0 && is->fragments[0].fade==0 && is->power_count==1);
+            PlayerView probe=p;probe.position=(GameVec2){os->hazards[0].x,os->hazards[0].y};
+            MORPH_CHECK(obstacles.touches_player(obstacles.life.context,probe));
+            if(os->hazards[0].x<500)crossed=true;
+        }
+        MORPH_CHECK(crossed);p.position=is->fragments[0].position;GameEventBuffer events={0};
+        items.collect_step(items.life.context,&g,&f,p,obstacles.passages(obstacles.life.context),&events);
+        MORPH_CHECK(events.count==2 && is->collected==1 && is->fragments[0].fade>0 && items.view(items.life.context).shield);
+        events=(GameEventBuffer){0};items.collect_step(items.life.context,&g,&f,p,obstacles.passages(obstacles.life.context),&events);
+        MORPH_CHECK(events.count==0 && is->collected==1);
+    }
+    puts("HAZARD ITEMS: all six moving hazards cross energy and boosts without deleting/collecting; only player collects once");
+}
 int main(void)
 {
     ItemsApi items=ItemsModuleCreate();ObstaclesApi obstacles=ObstaclesModuleCreate();
     MORPH_CHECK(items.life.init(items.life.context));MORPH_CHECK(obstacles.life.init(obstacles.life.context));
+    CheckHazardsPreserveItems(items,obstacles);
     for(int w=0;w<6;w++){
         GameState g={.mode=GAME_PLAY,.world=w};const WorldConfig *cfg=obstacles.config(obstacles.life.context,w);
         g.minimum_distance=cfg->base_speed*cfg->duration_steps;
@@ -41,5 +74,5 @@ int main(void)
         MORPH_CHECK(count==GameEnergyRequired(w) && missed==4);
     }
     items.life.shutdown(items.life.context);obstacles.life.shutdown(obstacles.life.context);
-    puts("PASS items-passages: six real worlds, rejected unsafe positions, missed IDs replenished, all 84 opportunities collected");return 0;
+    puts("PASS items-passages: six real worlds, rejected unsafe positions, missed IDs replenished, all required opportunities collected");return 0;
 }
