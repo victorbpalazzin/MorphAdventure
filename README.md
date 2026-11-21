@@ -1,6 +1,6 @@
 # 🪽 Morph Adventure
 
-**Uma jornada através dos elementos. Seis mundos, vidas extras e energia para continuar.**
+**Uma jornada através dos elementos. Seis mundos, três vidas e energia para continuar.**
 
 Morph Adventure é um jogo de voo com rolagem lateral desenvolvido em **C99 com raylib 5.5**. Desvie dos obstáculos, reúna energia e atravesse portais enquanto seu personagem se transforma para explorar cada ambiente.
 
