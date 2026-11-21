@@ -31,3 +31,12 @@ bool CollisionCirclePolygon(GameVec2 center, float radius, const GameVec2 *verti
     }
     return inside;
 }
+
+bool CollisionSweptCircle(GameVec2 from,GameVec2 to,float radius,GameVec2 center,float other_radius)
+{
+    if(!FinitePoint(from)||!FinitePoint(to)||!FinitePoint(center)||!isfinite(radius)||!isfinite(other_radius)||radius<=0||other_radius<=0)return false;
+    double dx=(double)to.x-from.x,dy=(double)to.y-from.y,len=dx*dx+dy*dy;
+    double t=len>0?Clamp((((double)center.x-from.x)*dx+((double)center.y-from.y)*dy)/len,0,1):0;
+    double x=(double)center.x-from.x-t*dx,y=(double)center.y-from.y-t*dy,r=(double)radius+other_radius;
+    return x*x+y*y<r*r;
+}

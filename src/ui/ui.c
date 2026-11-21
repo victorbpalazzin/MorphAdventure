@@ -9,11 +9,16 @@ static void Reset(void *p,const GameState *g,const WorldConfig *c)
 {(void)c;UiState *s=p;memset(s,0,sizeof(*s));s->score=g->score;s->title_steps=185;s->input_mode=g->mode;}
 unsigned UiButtons(GameMode mode,UiButton b[2])
 {
-    if(mode==GAME_PLAY || mode==GAME_PORTAL || mode==GAME_TRANSITION){b[0]=(UiButton){{888,18,54,52},COMMAND_TOGGLE_PAUSE,"II"};return 1;}
-    if(mode!=GAME_INTRO && mode!=GAME_PAUSED && mode!=GAME_LOST && mode!=GAME_WON)return 0;
-    b[0]=(UiButton){{300,354,360,52},mode==GAME_INTRO?COMMAND_START:mode==GAME_PAUSED?COMMAND_RESUME:COMMAND_RETRY,
-        mode==GAME_INTRO?"Comecar aventura":mode==GAME_PAUSED?"Continuar":mode==GAME_LOST?"Tentar novamente":"Jogar novamente"};
-    b[1]=(UiButton){{300,419,360,40},COMMAND_RESTART,"Voltar ao inicio"};return mode==GAME_INTRO?1:2;
+    if(mode==GAME_INTRO || mode==GAME_WON){
+        b[0]=(UiButton){{605,mode==GAME_INTRO?438:430,320,46},mode==GAME_INTRO?COMMAND_START:COMMAND_RETRY,mode==GAME_INTRO?"Iniciar Aventura":"Jogar Novamente"};
+        b[1]=(UiButton){{605,485,320,36},COMMAND_RESTART,"Menu Principal"};
+        return mode==GAME_INTRO?1:2;
+    }
+    if(mode==GAME_PLAY || mode==GAME_PORTAL || mode==GAME_TRANSITION || mode==GAME_BOSS){b[0]=(UiButton){{888,18,54,52},COMMAND_TOGGLE_PAUSE,"II"};return 1;}
+    if(mode!=GAME_PAUSED && mode!=GAME_LOST)return 0;
+    b[0]=(UiButton){{300,354,360,52},mode==GAME_PAUSED?COMMAND_RESUME:COMMAND_RETRY,
+        mode==GAME_PAUSED?"Continuar":"Tentar novamente"};
+    b[1]=(UiButton){{300,419,360,40},COMMAND_RESTART,"Voltar ao inicio"};return 2;
 }
 static bool Inside(GameVec2 p,GameRect r)
 {return p.x>=r.x && p.y>=r.y && p.x<r.x+r.width && p.y<r.y+r.height;}
@@ -37,7 +42,13 @@ static UiDecision Input(void *p,const GameState *g,const GameInput *in)
 }
 static void Step(void *p,const GameState *g,const FrameContext *f,const ItemsView *v)
 {
-    UiState *s=p;if(g->mode!=GAME_PLAY && g->mode!=GAME_PORTAL && g->mode!=GAME_TRANSITION)return;
+    UiState *s=p;
+    if(g->mode==GAME_INTRO || g->mode==GAME_WON){
+        if(s->narrative_mode!=g->mode){s->narrative_seconds=0;s->narrative_mode=g->mode;}
+        if(isfinite(f->ui_seconds) && f->ui_seconds>0)s->narrative_seconds+=fminf(f->ui_seconds,.1f);
+        return;
+    }
+    if(g->mode!=GAME_PLAY && g->mode!=GAME_PORTAL && g->mode!=GAME_TRANSITION && g->mode!=GAME_BOSS)return;
     float dt=f->ui_seconds*60;if(!isfinite(dt)||dt<=0)return;
     s->score_pulse=fmaxf(0,s->score_pulse-dt);s->charge_pulse=fmaxf(0,s->charge_pulse-dt);
     if(g->score!=s->score){s->score=g->score;s->score_pulse=17;}

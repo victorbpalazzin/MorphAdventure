@@ -7,7 +7,17 @@ static void Line(GameVec2 p,float x,float y,float xx,float yy,float width,Color 
 {DrawLineEx((Vector2){p.x+x,p.y+y},(Vector2){p.x+xx,p.y+yy},width,c);}
 static void Icon(BoostType type,GameVec2 p,Color c)
 {
-    if(type==BOOST_SHIELD){
+    if(type==BOOST_PHASE){
+        DrawCircleV((Vector2){p.x,p.y-4},10,Fade(c,.75f));
+        DrawRectangle((int)p.x-10,(int)p.y-4,20,14,Fade(c,.75f));
+        for(int i=0;i<3;i++)DrawCircle((int)p.x-7+i*7,(int)p.y+9,3,c);
+        DrawCircle((int)p.x-4,(int)p.y-4,2,GetColor(0x132945ff));
+        DrawCircle((int)p.x+4,(int)p.y-4,2,GetColor(0x132945ff));
+    }else if(type==BOOST_LIFE){
+        DrawCircle((int)p.x-5,(int)p.y-4,7,c);DrawCircle((int)p.x+5,(int)p.y-4,7,c);
+        DrawTriangle((Vector2){p.x-12,p.y-3},(Vector2){p.x,p.y+13},(Vector2){p.x+12,p.y-3},c);
+        DrawText("+1",(int)p.x-9,(int)p.y+22,16,c);
+    }else if(type==BOOST_SHIELD){
         Vector2 v[]={{p.x-10,p.y-10},{p.x+10,p.y-10},{p.x+8,p.y+5},{p.x,p.y+13},{p.x-8,p.y+5}};
         for(int i=0;i<5;i++){DrawTriangle((Vector2){p.x,p.y},v[(i+1)%5],v[i],Fade(c,.3f));DrawLineEx(v[i],v[(i+1)%5],2,c);}
         Line(p,-5,0,-1,5,2,WHITE);Line(p,-1,5,6,-4,2,WHITE);

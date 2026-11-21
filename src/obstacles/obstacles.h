@@ -5,7 +5,7 @@
 #define HAZARD_CAPACITY 8
 #define OBSTACLE_POLYGON_CAPACITY 64
 #define OBSTACLE_PROTECTED_CAPACITY 32
-typedef enum ObstacleHazardType { HAZARD_JELLY, HAZARD_ICE, HAZARD_FIRE } ObstacleHazardType;
+typedef enum ObstacleHazardType { HAZARD_JELLY, HAZARD_ICE, HAZARD_FIRE, HAZARD_WIND, HAZARD_VINE, HAZARD_ROCK } ObstacleHazardType;
 typedef struct ObstacleColumn {
     int world;
     uint32_t id;
@@ -14,9 +14,16 @@ typedef struct ObstacleColumn {
 } ObstacleColumn;
 typedef struct ObstacleHazard {
     ObstacleHazardType type;
-    uint32_t anchor_id;
-    float x,y,age,radius,side;
+    uint32_t id;
+    float x,y,age,radius,base_y;
+    GameVec2 previous;
+    float phase,speed; /* deterministic per-spawn motion; world-step units */
 } ObstacleHazard;
+typedef struct ObstacleHazardConfig {
+    float speed, interval, amplitude, frequency, warning;
+    unsigned max_active;
+} ObstacleHazardConfig;
+const ObstacleHazardConfig *ObstaclesHazardSettings(int world);
 typedef struct ObstacleProtectedCircle { GameVec2 center; float radius; } ObstacleProtectedCircle;
 typedef struct ObstacleEnvironmentView {
     bool active,warning;

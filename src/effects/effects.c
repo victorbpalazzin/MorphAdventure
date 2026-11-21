@@ -1,9 +1,10 @@
 #include "effects_internal.h"
+#include "boss_visual.h"
 #include "items/items.h"
 #include <math.h>
 #include <string.h>
 static EffectsState state;
-static bool Running(GameMode m){return m==GAME_PLAY || m==GAME_PORTAL || m==GAME_TRANSITION;}
+static bool Running(GameMode m){return m==GAME_PLAY || m==GAME_PORTAL || m==GAME_TRANSITION || m==GAME_BOSS;}
 static float Random(EffectsState *s){s->seed=s->seed*1664525u+1013904223u;return (float)((s->seed>>8)/16777216.0);}
 static bool Init(void *p){memset(p,0,sizeof(EffectsState));return true;}
 static void Shutdown(void *p){memset(p,0,sizeof(EffectsState));}
@@ -71,7 +72,7 @@ static void Switch(void *p,const GameState *g,const WorldConfig *cfg)
     (void)cfg;EffectsState *s=p;if(!s->blackout_sent || s->phase!=FX_BLACK)return;
     s->world=g->world;s->count=0;s->damage_flash=s->charge_flash=0;s->pose=(PortalPose){0};s->phase=FX_REVEAL;
 }
-static void DrawPortal(void *p,const GameState *g){(void)g;EffectsDrawPortal(p);}
+static void DrawPortal(void *p,const GameState *g){if(g->boss.stage!=BOSS_DORMANT) BossDrawScene(&g->boss); else EffectsDrawPortal(p);}
 static void DrawParticles(void *p,const GameState *g){(void)g;EffectsDrawParticles(p);}
 static void DrawTransition(void *p,const GameState *g){EffectsDrawTransition(p,g);}
 EffectsApi EffectsModuleCreate(void)

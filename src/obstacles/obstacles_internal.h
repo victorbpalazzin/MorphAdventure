@@ -7,7 +7,8 @@ typedef struct ObstaclesState {
     unsigned column_count,hazard_count,passed,generated,capacity_delays;
     uint32_t seed;
     double clock;
-    float spawn_timer,event_timer;
+    float spawn_timer,event_timer,hazard_timer;
+    uint32_t next_hazard;
     bool debug;
     ObstacleEnvironmentView environment;
     ObstacleColumn columns[OBSTACLE_CAPACITY];

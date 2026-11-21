@@ -27,54 +27,70 @@ static void Button(UiButton b,bool focus)
 }
 void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
 {
+    if(g->mode==GAME_INTRO || g->mode==GAME_WON){
+        UiNarrativeDraw(s,g);UiButton buttons[2];unsigned count=UiButtons(g->mode,buttons);
+        for(unsigned i=0;i<count;i++)Button(buttons[i],s->focus==(int)i);
+        return;
+    }
     char text[160];int world=g->world>=0 && g->world<6?g->world:0;
     Panel((Rectangle){18,12,852,68},GetColor(0x10283de6));
     snprintf(text,sizeof(text),"%02d / 06  %s",world+1,names[world]);DrawText(text,32,20,18,gold);
-    for(int i=0;i<3;i++)Heart(43+i*30,57,i<g->lives);
+    for(int i=0;i<(g->lives>3?g->lives:3) && i<6;i++)Heart(40+i*25,57,i<g->lives);
     snprintf(text,sizeof(text),"PONTOS  %" PRIu64,g->score);
     DrawText(text,195,24,s->score_pulse>0?22:20,s->score_pulse>0?gold:ink);
     float progress=g->minimum_distance>0?fminf(1,fmaxf(0,g->distance/g->minimum_distance)):0;
     snprintf(text,sizeof(text),"Percurso %d%%",(int)floorf(progress*100));DrawText(text,195,52,16,mint);
-    unsigned required=GameEnergyRequired(g->world);bool full=required>0 && v->collected>=required;
-    float fraction=GameEnergyFraction(v->collected,g->world);
-    snprintf(text,sizeof(text),"ENERGIA  %u/%u  %d%%",v->collected,required,full?100:(int)floorf(fraction*100));
+    bool combat=g->boss.stage!=BOSS_DORMANT;
+    unsigned collected=combat?g->boss.energy.collected:v->collected;
+    unsigned required=combat?g->boss.energy.required:GameEnergyRequired(g->world);bool full=required>0 && collected>=required;
+    float fraction=combat?(required?(float)collected/required:0):GameEnergyFraction(v->collected,g->world);
+    snprintf(text,sizeof(text),"ENERGIA  %u/%u  %d%%",collected,required,full?100:(int)floorf(fraction*100));
     DrawText(text,563,20,18,full?mint:ink);
     Rectangle battery={565,47,275,22};
     if(full)DrawRectangleRounded((Rectangle){560,42,285,32},.4f,12,Fade(mint,.12f+.12f*fabsf(sinf(s->charge_pulse*.25f))));
     DrawRectangleRoundedLinesEx(battery,.2f,8,2,ink);DrawRectangle(841,53,6,10,ink);
-    float width=267*fminf(fraction,fmaxf(0,s->battery));
+    float width=267*fminf(fraction,fmaxf(0,combat?g->boss.battery_display:s->battery));
     if(width>0)DrawRectangleGradientH(569,51,(int)width,14,GetColor(0x52cbb3ff),GetColor(0xd7ff8aff));
+    if(combat){
+        for(int i=0;i<7;i++){
+            float segment=267.0f/7,amount=fminf(segment,fmaxf(0,width-i*segment));
+            if(amount>0)DrawRectangle((int)(569+i*segment),51,(int)amount,14,ColorFromHSV(i*48,.7f,1));
+        }
+        Panel((Rectangle){300,87,560,65},GetColor(0x170e2aee));
+        DrawText("GROOTSPECTRO",316,95,20,GetColor(0xe2bdffff));
+        snprintf(text,sizeof(text),"FASE %u / 3",g->boss.phase);DrawText(text,723,98,16,ink);
+        for(unsigned i=0;i<3;i++)DrawRectangleRounded((Rectangle){316+i*176.0f,123,166,16},.3f,8,i<g->boss.segments?GetColor(0xad63e6ff):GetColor(0x35263fff));
+        if(g->mode==GAME_BOSS){
+            Panel((Rectangle){235,492,490,33},GetColor(0x10283de6));
+            const char *hint=g->boss.stage==BOSS_DYING?"O equilíbrio está sendo restaurado...":
+                g->boss.beam_active?"MEGARRAIO EM AÇÃO!":full?"MEGARRAIO PRONTO!  Aperte J":
+                "Colete energia multicolorida  |  J dispara o megarraio";
+            Center(hint,501,16,full?gold:ink);
+        }
+    }
     for(unsigned i=0;i<v->boost_count && i<MORPH_MAX_BOOSTS;i++){
         const ItemBoostDefinition *d=ItemsBoostDefinition(v->boosts[i].type);if(!d)continue;
         if(v->boosts[i].seconds_left<0)snprintf(text,sizeof(text),"%s | 1 impacto",d->name);
         else snprintf(text,sizeof(text),"%s | %ds",d->name,(int)ceilf(v->boosts[i].seconds_left));
-        Panel((Rectangle){18+i*206.0f,87,198,32},GetColor(0x10283dd9));DrawText(text,28+(int)i*206,95,16,GetColor(d->color));
+        float bx=combat?18:18+i*206.0f,by=combat?87+i*36.0f:87;
+        Panel((Rectangle){bx,by,198,32},GetColor(0x10283dd9));DrawText(text,(int)bx+10,(int)by+8,16,GetColor(d->color));
     }
     if(s->title_steps>0 && (g->mode==GAME_PLAY || g->mode==GAME_PORTAL)){
         float alpha=fminf(1,fminf(s->title_steps/35,(185-s->title_steps)/20));
         DrawRectangleRounded((Rectangle){350,119,260,70},.25f,12,Fade(GetColor(0x10283dff),alpha*.55f));
         snprintf(text,sizeof(text),"MUNDO %02d",world+1);Center(text,127,16,Fade(gold,alpha));Center(names[world],150,30,Fade(ink,alpha));
     }
-    bool modal=g->mode==GAME_INTRO||g->mode==GAME_PAUSED||g->mode==GAME_LOST||g->mode==GAME_WON;
+    bool modal=g->mode==GAME_PAUSED||g->mode==GAME_LOST;
     if(modal){
         DrawRectangle(0,0,960,540,GetColor(0x071322a6));Panel((Rectangle){150,98,660,382},GetColor(0x132c3ff5));
         DrawLineEx((Vector2){240,125},(Vector2){720,125},2,Fade(gold,.6f));
-        const char *title=g->mode==GAME_INTRO?"MORPH ADVENTURE":g->mode==GAME_PAUSED?"A aventura espera":g->mode==GAME_LOST?"Mais uma tentativa?":"Seis mundos. Uma aventura.";
-        Center(title,150,g->mode==GAME_INTRO?32:30,gold);
-        if(g->mode==GAME_INTRO){
-            Center("Uma jornada atraves dos elementos",199,20,ink);
-            Center("Tres vidas para atravessar os seis mundos.",242,20,ink);
-            Center("Colete 4, 8, 12, 16, 20 e 24 fragmentos de energia.",273,18,mint);
-            Center("Espaco / seta para cima / W / clique para voar",309,18,ink);
-        }else if(g->mode==GAME_PAUSED){
+        Center(g->mode==GAME_PAUSED?"A aventura espera":"Mais uma tentativa?",150,30,gold);
+        if(g->mode==GAME_PAUSED){
             Center("Tudo fica congelado ate voce continuar.",230,20,ink);
             Center("P continua. Espaco ativa o botao em foco.",274,20,mint);
-        }else if(g->mode==GAME_LOST){
+        }else{
             Center("Uma nova partida comeca no Ar, com tres vidas.",230,20,ink);
             snprintf(text,sizeof(text),"Pontuacao: %" PRIu64,g->score);Center(text,278,24,mint);
-        }else{
-            Center("Voce atravessou o portal do Fogo!",230,22,ink);
-            snprintf(text,sizeof(text),"Pontuacao final: %" PRIu64,g->score);Center(text,278,24,mint);
         }
     }
     UiButton b[2];unsigned n=UiButtons(g->mode,b);

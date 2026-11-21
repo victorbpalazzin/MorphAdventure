@@ -17,6 +17,7 @@ foreach(_dir player worlds obstacles items ui effects)
         message(FATAL_ERROR "MORPH_MODULES_LINKED=ON, mas src/${_dir}/ não tem arquivos .c. "
                             "O módulo ainda não foi entregue.")
     endif()
+    list(FILTER _found EXCLUDE REGEX "combat_energy[.]c$")
     list(APPEND _morph_module_sources ${_found})
 endforeach()
 
