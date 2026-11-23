@@ -96,5 +96,8 @@ static void Step(void *p,const GameState *g,const FrameContext *f,const ItemsVie
 }
 static void Draw(void *p,const GameState *g,const ItemsView *v){UiDraw(p,g,v);}
 UiApi UiModuleCreate(void){return (UiApi){{&state,Init,Reset,Shutdown},Input,Step,Draw};}
+static bool gamepad_hints;
+void UiSetGamepadHints(bool gamepad){gamepad_hints=gamepad;}
+bool UiGamepadHints(void){return gamepad_hints;}
 void UiQueueNavigation(int direction,bool activate){if(direction)state.navigation=direction;state.activate=state.activate||activate;}
 UiSnapshot UiInspect(void){return (UiSnapshot){state.battery,state.title_steps,state.score_pulse,state.charge_pulse,state.focus,state.collected};}

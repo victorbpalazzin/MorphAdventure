@@ -108,7 +108,7 @@ void UiNarrativeDraw(const UiState *s,const GameState *g)
         DrawLine(605,195,925,195,Fade(accent,.3f));
         int y=Paragraph("Uma força sombria conhecida como Grootspectro ameaça destruir o equilíbrio entre os mundos. Agora, nossos heróis precisam superar desafios, reunir suas forças e enfrentar essa terrível ameaça.",218,18,ink);
         Paragraph("O destino dos mundos está em suas mãos!",y+19,18,gold);
-        Text("Espaço / cima / W: voar | J: megarraio",605,505,13,ink);
+        Text(UiGamepadHints()?"X: voar | Quadrado: megarraio | OPTIONS: pausa":"Espaço / cima / W: voar | J: megarraio",605,505,13,ink);
     }else{
         Text("VITÓRIA!",603,53,36,gold);Text("OS MUNDOS FORAM SALVOS!",605,98,19,accent);
         int y=Paragraph("Parabéns, herói!",139,18,gold);

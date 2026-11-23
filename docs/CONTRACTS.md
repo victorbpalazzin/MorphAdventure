@@ -391,3 +391,32 @@ ressurreição existe: os caminhos novos dependem de `edu.enabled`.
   a volta não aplica o tempo acumulado.
 - UI: UiQuizButtons/UiQuizDraw (somente leitura). Teclas 1-4/A-D, setas+Enter/Espaço
   e clique; o foco começa vazio para que Espaço de voo não responda. Up/W não respondem.
+
+## Controle (DualShock 4 e outros reconhecidos pela raylib 5.5) — somente versão educativa
+
+Sem mudança de contrato (MORPH_CONTRACT_VERSION continua 6). O controle existe apenas
+no build educativo (MORPH_EDUCATIONAL=ON): main.c só lê o controle quando PadSupported()
+é verdadeiro. No arcade nada é lido, os textos de ajuda são os originais e
+`--gamepad-test` apenas informa que o recurso é da versão educativa. `src/input/gamepad.{h,c}`
+(puro, em morph_core) converte um retrato do controle em ações e as aplica ao mesmo
+GameInput e à mesma navegação da UI (UiQueueNavigation) usados por teclado e mouse.
+main.c lê a raylib apenas pelos botões semânticos (GAMEPAD_BUTTON_RIGHT_FACE_DOWN = X,
+RIGHT_FACE_RIGHT = Círculo, RIGHT_FACE_LEFT = Quadrado, MIDDLE_RIGHT = OPTIONS,
+LEFT_FACE_* = direcional, eixo LEFT_X/Y), já traduzidos pela base de mapeamentos do GLFW;
+nenhum número bruto é presumido. O primeiro controle disponível é lido a cada quadro;
+conectar, desconectar ou trocar de controle limpa o estado, e botões já apertados nesse
+momento só contam depois de soltos.
+
+| Tela | X | Quadrado | OPTIONS | Círculo | Direcional / analógico |
+|---|---|---|---|---|---|
+| PLAY / BOSS | impulso | megarraio (só BOSS) | pausa | — | — |
+| PORTAL / TRANSITION | — | — | pausa | — | — |
+| INTRO / WON / LOST / PAUSED | confirma o foco | — | retoma (PAUSED) | PAUSED: continuar; LOST/WON: voltar ao início | navega |
+| QUIZ | confirma a alternativa em foco | — | pausa | — | escolhe a alternativa |
+
+Em menus e perguntas o X nunca vira impulso; o impulso é por borda, então X mantido ao
+voltar ao jogo não voa. Na pergunta o foco começa vazio: é preciso escolher pelo
+direcional antes de confirmar (mesma proteção do Espaço). Navegação: um passo imediato,
+repetição após 0,40 s e depois a cada 0,18 s; analógico com histerese 0,55/0,35. O
+cronômetro de 12 s não depende do controle. `morph-adventure --gamepad-test` mostra o
+nome do controle e cada ação pressionada para conferir o mapeamento real.

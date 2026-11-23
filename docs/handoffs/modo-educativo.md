@@ -54,10 +54,28 @@ Durante o desafio `W`, `↑` e `J` não voam/atacam, e o foco começa vazio, ent
 que o jogador já vinha apertando não responde. As respostas só valem após 0,35 s e o botão
 de continuar após 0,5 s de feedback.
 
+## Controle (DualShock 4) — somente na versão educativa
+
+Apenas o build educativo lê o controle; o arcade continua só com teclado e mouse,
+exatamente como antes. Na versão educativa: X voa e confirma, Quadrado dispara o megarraio,
+OPTIONS pausa e retoma, direcional ou analógico esquerdo navega, Círculo volta (pausa,
+derrota e vitória). Textos de ajuda trocam para os botões do controle quando ele está
+conectado. Detalhes em `docs/CONTRACTS.md` (seção Controle). Para conferir no Windows:
+
+```bash
+morph-adventure --gamepad-test
+```
+
+Pressione X, Círculo, Quadrado, OPTIONS e o direcional: cada linha deve acender com o nome
+certo (o número raylib esperado aparece na tela). Se o controle aparecer mas nenhum botão
+acender, a raylib não tem mapeamento para ele e o jogo continua apenas com teclado e mouse.
+
 ## Testes executados
 
-Arcade e educativo (pastas de build separadas), Release, Linux, xvfb: 21/21 em cada.
-Lógica com AddressSanitizer + UBSan (`MORPH_BUILD_GAME=OFF`): 8/8. Executável
+Arcade e educativo (pastas de build separadas), Release, Linux, xvfb: 23/23 em cada
+(inclui `input-gamepad` e `input-pad-flow`, que exercita o controle na versão educativa). Lógica com AddressSanitizer + UBSan
+(`MORPH_BUILD_GAME=OFF`): 9/9. O controle foi testado por simulação do estado da raylib;
+o DualShock 4 físico ainda precisa ser conferido no Windows com `--gamepad-test`. Executável
 `morph-adventure` dos dois modos abre e roda 30 quadros. Capturas do laboratório:
 `build-edu/tests/edu/captures/edu-*.png`.
 

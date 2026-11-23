@@ -1,0 +1,25 @@
+# Controle (DualShock 4 e outros reconhecidos pela raylib 5.5).
+morph_add_logic_test(input-gamepad gamepad_test.c)
+if(TARGET morph::raylib)
+    file(GLOB _pad_modules CONFIGURE_DEPENDS
+        "${PROJECT_SOURCE_DIR}/src/ui/*.c" "${PROJECT_SOURCE_DIR}/src/effects/*.c"
+        "${PROJECT_SOURCE_DIR}/src/items/*.c" "${PROJECT_SOURCE_DIR}/src/obstacles/*.c"
+        "${PROJECT_SOURCE_DIR}/src/worlds/*.c" "${PROJECT_SOURCE_DIR}/src/player/*.c")
+    list(FILTER _pad_modules EXCLUDE REGEX "combat_energy[.]c$")
+    add_executable(pad-lab pad_lab.c ${_pad_modules} ${PROJECT_SOURCE_DIR}/src/core/composition.c)
+    target_include_directories(pad-lab PRIVATE ${MORPH_TEST_SUPPORT_DIR})
+    target_link_libraries(pad-lab PRIVATE morph_core morph::raylib)
+    morph_project_target(pad-lab)
+    morph_standalone_runtime(pad-lab)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/captures")
+    add_test(NAME input-pad-flow COMMAND pad-lab --capture "${CMAKE_CURRENT_BINARY_DIR}/captures")
+    set_tests_properties(input-pad-flow PROPERTIES LABELS "gui;input;integration" TIMEOUT 180)
+    if(UNIX AND NOT APPLE AND NOT DEFINED ENV{DISPLAY} AND NOT DEFINED ENV{WAYLAND_DISPLAY})
+        find_program(PAD_XVFB xvfb-run)
+        set_tests_properties(input-pad-flow PROPERTIES DISABLED TRUE)
+        if(PAD_XVFB)
+            add_test(NAME input-pad-flow-xvfb COMMAND ${PAD_XVFB} -a $<TARGET_FILE:pad-lab> --capture "${CMAKE_CURRENT_BINARY_DIR}/captures")
+            set_tests_properties(input-pad-flow-xvfb PROPERTIES LABELS "gui;input;integration" TIMEOUT 180)
+        endif()
+    endif()
+endif()

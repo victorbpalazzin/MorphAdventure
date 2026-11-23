@@ -62,9 +62,10 @@ void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
         for(unsigned i=0;i<3;i++)DrawRectangleRounded((Rectangle){316+i*176.0f,123,166,16},.3f,8,i<g->boss.segments?GetColor(0xad63e6ff):GetColor(0x35263fff));
         if(g->mode==GAME_BOSS){
             Panel((Rectangle){235,492,490,33},GetColor(0x10283de6));
+            bool pad=UiGamepadHints();
             const char *hint=g->boss.stage==BOSS_DYING?"O equilíbrio está sendo restaurado...":
-                g->boss.beam_active?"MEGARRAIO EM AÇÃO!":full?"MEGARRAIO PRONTO!  Aperte J":
-                "Colete energia multicolorida  |  J dispara o megarraio";
+                g->boss.beam_active?"MEGARRAIO EM AÇÃO!":full?(pad?"MEGARRAIO PRONTO!  Aperte Quadrado":"MEGARRAIO PRONTO!  Aperte J"):
+                pad?"Colete energia multicolorida  |  Quadrado dispara o megarraio":"Colete energia multicolorida  |  J dispara o megarraio";
             Center(hint,501,16,full?gold:ink);
         }
     }
@@ -91,7 +92,7 @@ void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
         Center(g->mode==GAME_PAUSED?"A aventura espera":"Mais uma tentativa?",150,30,gold);
         if(g->mode==GAME_PAUSED){
             Center("Tudo fica congelado ate voce continuar.",230,20,ink);
-            Center("P continua. Espaco ativa o botao em foco.",274,20,mint);
+            Center(UiGamepadHints()?"OPTIONS ou Circulo continua. X ativa o botao em foco.":"P continua. Espaco ativa o botao em foco.",274,20,mint);
         }else{
             Center("Uma nova partida comeca no Ar, com tres vidas.",230,20,ink);
             snprintf(text,sizeof(text),"Pontuacao: %" PRIu64,g->score);Center(text,278,24,mint);
@@ -99,6 +100,7 @@ void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
     }
     UiButton b[2];unsigned n=UiButtons(g->mode,b);
     for(unsigned i=0;i<n;i++)Button(b[i],s->focus==(int)i && modal);
-    if(modal)Center("Espaco ativa a opcao em foco  |  P pausa durante a partida",497,16,ink);
+    if(modal)Center(UiGamepadHints()?"Direcional escolhe  |  X confirma  |  Circulo volta  |  OPTIONS pausa":
+        "Espaco ativa a opcao em foco  |  P pausa durante a partida",497,16,ink);
     if(g->mode==GAME_QUIZ)UiQuizDraw(s,g);
 }

@@ -1,6 +1,7 @@
 /* Painel "DESAFIO DE LÓGICA" / "ÚLTIMA CHANCE!" do modo educativo.
  * Somente leitura: não altera GameState nem avança relógios. 960x540 lógicos. */
 #include "ui_internal.h"
+#include "ui/ui.h"
 #include "edu/quiz.h"
 #include "raylib.h"
 #include <math.h>
@@ -132,7 +133,8 @@ static void Asking(const UiState *s, const GameState *g, const LogicQuestion *qu
     Wrap(question->prompt, 96, area_top + (area > height ? (area - height) / 2 : 0), 768, 25, 31, ink, true);
     int focus = Focus(s, q);
     for (unsigned i = 0; i < n; i++) Option(question, q, b[i], (int)i, focus == (int)i);
-    Centered("Clique, use 1-4 ou A-D  |  Setas e Enter  |  P pausa", 498, 15, Fade(ink, .75f));
+    Centered(UiGamepadHints() ? "Direcional escolhe a alternativa  |  X confirma  |  OPTIONS pausa"
+                              : "Clique, use 1-4 ou A-D  |  Setas e Enter  |  P pausa", 498, 15, Fade(ink, .75f));
 }
 
 static void Feedback(const UiState *s, const GameState *g, const LogicQuestion *question)
@@ -171,7 +173,7 @@ static void Feedback(const UiState *s, const GameState *g, const LogicQuestion *
         if (Focus(s, q) == (int)i) DrawRectangleRoundedLinesEx((Rectangle){r.x - 4, r.y - 4, r.width + 8, r.height + 8}, .3f, 12, 2, gold);
         DrawText(b[i].label, (int)(r.x + (r.width - MeasureText(b[i].label, 22)) / 2), (int)(r.y + 14), 22, GetColor(0x173443ff));
     }
-    Centered("Enter, Espaço ou clique para continuar", 486, 15, Fade(ink, .75f));
+    Centered(UiGamepadHints() ? "X para continuar" : "Enter, Espaço ou clique para continuar", 486, 15, Fade(ink, .75f));
 }
 
 void UiQuizDraw(const UiState *s, const GameState *g)

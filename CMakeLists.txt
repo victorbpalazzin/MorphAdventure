@@ -40,6 +40,7 @@ add_library(morph_core STATIC
     src/items/combat_energy.c
     src/edu/questions.c
     src/edu/quiz.c
+    src/input/gamepad.c
     src/core/game.c
     src/core/viewport.c)
 target_include_directories(morph_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

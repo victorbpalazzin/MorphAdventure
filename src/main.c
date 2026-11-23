@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "core/game.h"
 #include "core/viewport.h"
+#include "input/gamepad.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +19,63 @@
 #include "items/items.h"
 GameModules MorphCreateModules(void);
 #endif
+
+/* Controle: usa os botões SEMÂNTICOS da raylib 5.5 (mapeados pela base
+ * SDL_GameControllerDB embutida no GLFW). No DualShock 4: RIGHT_FACE_DOWN = X,
+ * RIGHT_FACE_RIGHT = Círculo, RIGHT_FACE_LEFT = Quadrado, MIDDLE_RIGHT = OPTIONS.
+ * O primeiro controle disponível é usado; conectar/desconectar é verificado a
+ * cada quadro. Confira com: morph-adventure --gamepad-test */
+static const int pad_buttons[PAD_BUTTON_COUNT] = {
+    GAMEPAD_BUTTON_RIGHT_FACE_DOWN, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT,
+    GAMEPAD_BUTTON_RIGHT_FACE_LEFT, GAMEPAD_BUTTON_MIDDLE_RIGHT,
+    GAMEPAD_BUTTON_LEFT_FACE_UP, GAMEPAD_BUTTON_LEFT_FACE_DOWN,
+    GAMEPAD_BUTTON_LEFT_FACE_LEFT, GAMEPAD_BUTTON_LEFT_FACE_RIGHT};
+
+static PadSnapshot ReadPad(void)
+{
+    PadSnapshot pad = {0};
+    pad.id = -1;
+    for (int id = 0; id < 4; id++) {
+        if (!IsGamepadAvailable(id)) continue;
+        pad.connected = true;
+        pad.id = id;
+        for (int b = 0; b < PAD_BUTTON_COUNT; b++) pad.down[b] = IsGamepadButtonDown(id, pad_buttons[b]);
+        pad.stick_x = GetGamepadAxisMovement(id, GAMEPAD_AXIS_LEFT_X);
+        pad.stick_y = GetGamepadAxisMovement(id, GAMEPAD_AXIS_LEFT_Y);
+        break;
+    }
+    return pad;
+}
+
+/* Tela de verificação do mapeamento real, sem iniciar o jogo. */
+static void GamepadTest(void)
+{
+    PadState state; PadReset(&state);
+    int last = 0, navigated = 0;
+    while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
+        PadSnapshot pad = ReadPad();
+        PadActions a = PadUpdate(&state, pad, GetFrameTime());
+        int pressed = GetGamepadButtonPressed();
+        if (pressed) last = pressed;
+        navigated += a.navigate;
+        BeginDrawing();
+        ClearBackground((Color){12, 23, 37, 255});
+        Color ink = {232, 237, 224, 255}, gold = {238, 207, 143, 255}, on = {116, 222, 150, 255};
+        DrawText("MORPH ADVENTURE - teste do controle (ESC sai)", 30, 24, 24, gold);
+        if (!pad.connected) DrawText("Nenhum controle detectado. Conecte o cabo USB.", 30, 70, 20, ink);
+        else {
+            DrawText(TextFormat("Controle %d: %s", pad.id, GetGamepadName(pad.id)), 30, 70, 20, ink);
+            for (int b = 0; b < PAD_BUTTON_COUNT; b++)
+                DrawText(TextFormat("%-10s %s", PadButtonName((PadButton)b), pad.down[b] ? "PRESSIONADO" : "-"),
+                         30, 110 + b * 28, 20, pad.down[b] ? on : ink);
+            DrawText(TextFormat("Analogico esquerdo: x=%.2f  y=%.2f  | navegacao acumulada: %d",
+                                pad.stick_x, pad.stick_y, navigated), 30, 346, 20, ink);
+            DrawText(TextFormat("Ultimo botao raylib (GetGamepadButtonPressed): %d", last), 30, 380, 20, ink);
+            DrawText("Esperado no DualShock 4: X=7 Circulo=6 Quadrado=8 OPTIONS=15", 30, 414, 18, gold);
+        }
+        EndDrawing();
+    }
+}
 
 static void DrawDiagnostic(const Game *g, GameInput input)
 {
@@ -49,9 +107,11 @@ int main(int argc, char **argv)
 {
     int smoke_frames = 0, frame = 0;
     const char *capture = NULL;
+    bool gamepad_test = false;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--smoke-frames") == 0 && i + 1 < argc) smoke_frames = atoi(argv[++i]);
         else if (strcmp(argv[i], "--capture") == 0 && i + 1 < argc) capture = argv[++i];
+        else if (strcmp(argv[i], "--gamepad-test") == 0) gamepad_test = true;
     }
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
     InitWindow(1100, 700, "Morph Adventure - base C/raylib (pessoa 1)");
@@ -62,6 +122,12 @@ int main(int argc, char **argv)
     SetWindowMinSize(480, 270);
     SetExitKey(KEY_NULL);
     SetTargetFPS(60);
+    if (gamepad_test) {
+        if (PadSupported()) GamepadTest();
+        else printf("--gamepad-test: o controle existe somente na versao educativa (MORPH_EDUCATIONAL=ON).\n");
+        CloseWindow();
+        return 0;
+    }
     RenderTexture2D target = LoadRenderTexture(MORPH_WIDTH, MORPH_HEIGHT);
     if (!IsRenderTextureValid(target)) { CloseWindow(); return 1; }
     SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
@@ -77,6 +143,7 @@ int main(int argc, char **argv)
     Game game;
     bool initialized = GameInit(&game, &modules);
     bool previous_touch = false;
+    PadState pad_state; PadReset(&pad_state);
     while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
         GameViewport viewport = ViewportFit(GetScreenWidth(), GetScreenHeight());
         GameInput input = {0};
@@ -103,6 +170,17 @@ int main(int argc, char **argv)
         if (IsKeyPressed(KEY_ENTER)) UiQueueNavigation(0, true);
 #endif
         if (game.state.mode == GAME_INTRO && input.impulse_pressed) input.command = COMMAND_START;
+#ifdef MORPH_MODULES_LINKED
+        /* Versão educativa: o controle entra no mesmo fluxo do teclado/mouse.
+         * No arcade nada aqui é executado (nem leitura, nem textos de ajuda). */
+        if (PadSupported()) {
+            int pad_navigation = 0; bool pad_activate = false;
+            PadActions pad = PadUpdate(&pad_state, ReadPad(), (double)GetFrameTime());
+            PadApply(pad, game.state.mode, &input, &pad_navigation, &pad_activate);
+            if (pad_navigation || pad_activate) UiQueueNavigation(pad_navigation, pad_activate);
+            UiSetGamepadHints(pad_state.connected);
+        }
+#endif
         bool touch = GetTouchPointCount() > 0;
         Vector2 point = touch ? GetTouchPosition(0) : GetMousePosition();
         input.pointer_inside = ViewportToLogical(viewport, (GameVec2){point.x, point.y}, &input.pointer);
