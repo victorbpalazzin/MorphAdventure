@@ -94,7 +94,7 @@ if(MORPH_BUILD_GAME)
 endif()
 
 # Testes dos módulos, quando cada responsável entregar tests/<modulo>/CMakeLists.txt.
-foreach(_module player worlds obstacles items ui effects integration boss)
+foreach(_module player worlds obstacles items ui effects integration boss edu)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_module}/CMakeLists.txt")
         add_subdirectory(${_module})
     endif()

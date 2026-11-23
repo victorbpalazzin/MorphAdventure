@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MORPH_CONTRACT_VERSION 5u
+#define MORPH_CONTRACT_VERSION 6u
 #define MORPH_WIDTH 960
 #define MORPH_HEIGHT 540
 #define MORPH_WORLD_COUNT 6
@@ -20,11 +20,15 @@ typedef struct GameVec2 { float x, y; } GameVec2;
 typedef struct GameRect { float x, y, width, height; } GameRect;
 typedef enum GameMode {
     GAME_INTRO, GAME_PLAY, GAME_PAUSED, GAME_PORTAL,
-    GAME_TRANSITION, GAME_LOST, GAME_WON, GAME_ERROR, GAME_BOSS
+    GAME_TRANSITION, GAME_LOST, GAME_WON, GAME_ERROR, GAME_BOSS,
+    GAME_QUIZ /* educational build only: logic challenge, simulation frozen */
 } GameMode;
 typedef enum GameCommand {
     COMMAND_NONE, COMMAND_START, COMMAND_TOGGLE_PAUSE,
-    COMMAND_RESUME, COMMAND_RESTART, COMMAND_RETRY
+    COMMAND_RESUME, COMMAND_RESTART, COMMAND_RETRY,
+    /* Educational challenge: choose alternative A..D, then continue after feedback. */
+    COMMAND_ANSWER_A, COMMAND_ANSWER_B, COMMAND_ANSWER_C, COMMAND_ANSWER_D,
+    COMMAND_CONTINUE
 } GameCommand;
 typedef enum BoostType { BOOST_SHIELD, BOOST_MAGNET, BOOST_SLOW, BOOST_DOUBLE, BOOST_LIFE, BOOST_PHASE } BoostType;
 
@@ -56,6 +60,37 @@ typedef struct BossState {
     CombatEnergy energy;
     BossProjectile projectiles[MORPH_BOSS_PROJECTILES];
 } BossState;
+/* Educational mode (MORPH_EDUCATIONAL). Owned by the core; read-only elsewhere.
+ * The challenge clock uses presentation time, never world/slow-motion time. */
+#define MORPH_QUIZ_SECONDS 12.0f
+#define MORPH_QUIZ_DECK 64
+#define MORPH_QUIZ_INPUT_GUARD 0.35f   /* s: an in-flight flap/click cannot answer */
+#define MORPH_QUIZ_FEEDBACK_GUARD 0.5f /* s: feedback is readable before continuing */
+#define MORPH_REVIVE_GRACE_STEPS 180.0f
+typedef enum QuizKind { QUIZ_NONE, QUIZ_PASSAGE, QUIZ_REVIVE } QuizKind;
+typedef enum QuizPhase { QUIZ_ASKING, QUIZ_FEEDBACK } QuizPhase;
+typedef enum QuizResult { QUIZ_PENDING, QUIZ_CORRECT, QUIZ_WRONG, QUIZ_TIMEOUT } QuizResult;
+typedef struct QuizState {
+    QuizKind kind;
+    QuizPhase phase;
+    QuizResult result;
+    GameMode return_mode;      /* PLAY (passage/revive) or BOSS (revive) */
+    int question, last_question, selected;
+    float seconds_left;        /* starts at MORPH_QUIZ_SECONDS; frozen in feedback */
+    float age, feedback_age;   /* presentation seconds; guards and animation */
+    unsigned serial;           /* increments for each new question or phase */
+    unsigned deck_position, deck_count;
+    unsigned char deck[MORPH_QUIZ_DECK];
+    uint32_t seed;
+} QuizState;
+typedef struct EduState {
+    bool enabled;              /* fixed at GameInit from MORPH_EDUCATIONAL */
+    bool revive_used;          /* one second chance per adventure */
+    bool portal_unlocked;      /* correct answer for the current world */
+    float grace_steps;         /* normal steps of core-side protection after revive */
+    unsigned answered, correct;
+    QuizState quiz;
+} EduState;
 typedef struct GameState {
     GameMode mode, resume_mode;
     int world, lives;
@@ -66,6 +101,7 @@ typedef struct GameState {
     uint64_t simulation_steps;
     BossState boss;
     uint32_t run_id, world_id; /* reject stale module state across resets */
+    EduState edu;              /* inert (enabled=false) in the arcade build */
 } GameState;
 
 typedef struct GameInput {

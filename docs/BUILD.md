@@ -108,6 +108,14 @@ macOS: não verificado.
 | `MORPH_WARNINGS_AS_ERRORS` | `ON` | Warnings do projeto viram erro |
 | `MORPH_SANITIZE` | vazio | GCC/Clang: `address,undefined` |
 | `MORPH_MODULES_LINKED` | `OFF` | Gera `morph-adventure`. Exige `src/core/composition.c` e `.c` em cada pasta de módulo; senão a configuração falha (sem módulos vazios) |
+| `MORPH_EDUCATIONAL` | `OFF` | `OFF`: versão arcade original. `ON`: versão educativa (letras, desafios de Lógica com 12 s antes dos portais e uma segunda chance por pergunta). Vale para o executável e todos os testes, via `morph_core`. Ver `docs/handoffs/modo-educativo.md` |
+
+Os dois modos usam pastas de build separadas, por exemplo:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DMORPH_MODULES_LINKED=ON
+cmake -S . -B build-edu -DCMAKE_BUILD_TYPE=Release -DMORPH_MODULES_LINKED=ON -DMORPH_EDUCATIONAL=ON
+```
 
 Não é permitido configurar o build dentro da pasta do código (`cmake -S . -B .`).
 

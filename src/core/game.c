@@ -1,9 +1,18 @@
 #include "game.h"
 #include "boss/boss.h"
 #include "items/combat_energy.h"
+#include "edu/quiz.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+
+static uint32_t quiz_session_seed = 0x51a7e5edu;
+
+static uint32_t MixSeed(uint32_t x)
+{
+    x ^= x >> 16; x *= 0x7feb352du; x ^= x >> 15; x *= 0x846ca68bu;
+    return x ^ (x >> 16);
+}
 
 static bool LifeComplete(ModuleLife life)
 {
@@ -86,6 +95,7 @@ static bool BeginWorld(Game *g, int world, bool preserve_fade)
     g->state.world = world;
     g->state.world_id++;
     g->life_awarded = false;
+    g->state.edu.portal_unlocked = false; /* each world needs its own correct answer */
     g->state.distance = g->state.scroll = 0;
     g->state.minimum_distance = cfg->base_speed * cfg->duration_steps;
     g->state.world_steps = 0;
@@ -108,6 +118,11 @@ static void NewRun(Game *g, GameMode mode)
     g->state.lives = 3;
     g->state.score = 0;
     g->state.run_id++;
+    /* Second chance and challenge deck restart only with a new adventure. */
+    bool educational = g->state.edu.enabled;
+    g->state.edu = (EduState){0};
+    g->state.edu.enabled = educational;
+    QuizSeed(&g->state.edu.quiz, MixSeed(quiz_session_seed ^ MixSeed(g->state.run_id)));
     g->state.simulation_steps = 0;
     g->state.mode = mode;
     g->state.resume_mode = GAME_PLAY;
@@ -117,10 +132,20 @@ static void NewRun(Game *g, GameMode mode)
     (void)BeginWorld(g, 0, false);
 }
 
+bool GameEducationalBuild(void) { return MORPH_EDUCATIONAL != 0; }
+
+void GameSetQuizSeed(uint32_t seed) { quiz_session_seed = seed; }
+
 bool GameInit(Game *g, const GameModules *modules)
+{
+    return GameInitMode(g, modules, GameEducationalBuild());
+}
+
+bool GameInitMode(Game *g, const GameModules *modules, bool educational)
 {
     if (!g || !modules) return false;
     memset(g, 0, sizeof(*g));
+    g->state.edu.enabled = educational;
     g->modules = *modules;
     g->state.mode = GAME_INTRO;
     g->state.resume_mode = GAME_PLAY;
@@ -167,9 +192,12 @@ static bool Active(GameMode mode)
     return mode == GAME_PLAY || mode == GAME_PORTAL || mode == GAME_TRANSITION || mode == GAME_BOSS;
 }
 
+/* The logic challenge is not simulation, but pause/focus loss must freeze it. */
+static bool Pausable(GameMode mode) { return Active(mode) || mode == GAME_QUIZ; }
+
 static void Pause(Game *g)
 {
-    if (Active(g->state.mode)) { g->state.resume_mode = g->state.mode; g->state.mode = GAME_PAUSED; }
+    if (Pausable(g->state.mode)) { g->state.resume_mode = g->state.mode; g->state.mode = GAME_PAUSED; }
     g->accumulator = 0;
     g->pending_impulse = false; g->pending_attack = false;
 }
@@ -180,7 +208,7 @@ static bool Command(Game *g, GameCommand command)
     if (command == COMMAND_RESTART) NewRun(g, GAME_INTRO);
     else if (command == COMMAND_START && before == GAME_INTRO) NewRun(g, GAME_PLAY);
     else if (command == COMMAND_RETRY && (before == GAME_LOST || before == GAME_WON)) NewRun(g, GAME_PLAY);
-    else if (command == COMMAND_TOGGLE_PAUSE && Active(before)) Pause(g);
+    else if (command == COMMAND_TOGGLE_PAUSE && Pausable(before)) Pause(g);
     else if ((command == COMMAND_RESUME || command == COMMAND_TOGGLE_PAUSE) && before == GAME_PAUSED) {
         g->state.mode = g->state.resume_mode;
         g->accumulator = 0;
@@ -215,9 +243,19 @@ static void Reward(Game *g, unsigned points, unsigned multiplier)
     g->state.score += addition;
 }
 
+/* Opens a challenge and freezes everything except the presentation clock. */
+static void OpenQuiz(Game *g, QuizKind kind)
+{
+    QuizBegin(&g->state.edu.quiz, kind, g->state.mode);
+    g->state.mode = GAME_QUIZ;
+    g->accumulator = 0;
+    g->pending_impulse = false; g->pending_attack = false;
+}
+
 static bool Damage(Game *g, PlayerView player)
 {
     if (player.invulnerable || (g->state.mode != GAME_PLAY && g->state.mode != GAME_BOSS)) return false;
+    if (g->state.edu.grace_steps > 0) return false; /* protection after the second chance */
     ItemsView protection = ReadItems(g);
     if (g->state.mode == GAME_ERROR) return false;
     for (unsigned i=0;i<protection.boost_count;i++)
@@ -228,6 +266,7 @@ static bool Damage(Game *g, PlayerView player)
     Notify(g, shield ? EVENT_SHIELD_ABSORBED : EVENT_DAMAGE, player.position, 1);
     if (g->state.lives <= 0) {
         g->state.lives = 0;
+        if (g->state.edu.enabled && !g->state.edu.revive_used) { OpenQuiz(g, QUIZ_REVIVE); return true; }
         g->state.mode = GAME_LOST;
         g->pending_impulse = false; g->pending_attack = false;
         g->accumulator = 0;
@@ -257,6 +296,7 @@ static void Step(Game *g, GameInput input)
 {
     GameModules *m = &g->modules;
     g->state.simulation_steps++;
+    if (g->state.edu.grace_steps > 0) g->state.edu.grace_steps = fmaxf(0, g->state.edu.grace_steps - 1);
     ItemsView items = ReadItems(g);
     if (g->state.mode == GAME_ERROR) return;
     FrameContext f = Frame(g, 1);
@@ -310,6 +350,9 @@ static void Step(Game *g, GameInput input)
             Notify(g, EVENT_PORTAL_CHARGED, player.position, 1);
         if (items.collected == GameEnergyRequired(g->state.world) &&
             m->obstacles.path_clear(m->obstacles.life.context, player)) {
+            /* Educational: the same safe moment opens the challenge; the portal
+             * itself only begins after a correct answer (QuizResolve). */
+            if (g->state.edu.enabled && !g->state.edu.portal_unlocked) { OpenQuiz(g, QUIZ_PASSAGE); return; }
             g->state.mode = GAME_PORTAL;
             g->pending_impulse = false; g->pending_attack = false;
             m->effects.begin_portal(m->effects.life.context, &g->state, player);
@@ -379,6 +422,62 @@ static void Step(Game *g, GameInput input)
     m->ui.step(m->ui.life.context, &g->state, &f, &items);
 }
 
+/* Second chance accepted: exactly one life, same world/score/letters/boss. */
+static void Revive(Game *g, GameMode back)
+{
+    GameModules *m = &g->modules;
+    g->state.lives = 1;
+    g->state.mode = back;
+    g->accumulator = 0;
+    g->pending_impulse = false; g->pending_attack = false;
+    m->player.life.reset_world(m->player.life.context, &g->state, g->config); /* (180,245), speed 0 */
+    m->player.apply_hit(m->player.life.context); /* small hop + visible invulnerability */
+    g->state.edu.grace_steps = MORPH_REVIVE_GRACE_STEPS;
+}
+
+static void QuizResolve(Game *g)
+{
+    EduState *e = &g->state.edu;
+    QuizState *q = &e->quiz;
+    if (q->kind == QUIZ_PASSAGE) {
+        if (q->result != QUIZ_CORRECT) { QuizNextQuestion(q); return; } /* portal stays locked */
+        e->portal_unlocked = true;
+        q->kind = QUIZ_NONE;
+        g->state.mode = GAME_PORTAL;
+        g->accumulator = 0;
+        g->pending_impulse = false; g->pending_attack = false;
+        GameModules *m = &g->modules;
+        m->effects.begin_portal(m->effects.life.context, &g->state, m->player.view(m->player.life.context));
+    } else if (q->kind == QUIZ_REVIVE) {
+        GameMode back = q->return_mode;
+        e->revive_used = true; /* single attempt, whatever the result */
+        q->kind = QUIZ_NONE;
+        if (q->result == QUIZ_CORRECT) Revive(g, back);
+        else { g->state.lives = 0; g->state.mode = GAME_LOST; g->accumulator = 0; }
+    }
+}
+
+/* Presentation clock: real frame seconds limited to 0.1 s, independent of the
+ * fixed simulation, world speed and slow motion. Elapsed time is applied before
+ * the input of the same frame, so an input arriving at the deadline is late. */
+static void QuizFrame(Game *g, double seconds, GameCommand command)
+{
+    QuizState *q = &g->state.edu.quiz;
+    g->accumulator = 0;
+    g->pending_impulse = false; g->pending_attack = false;
+    if (q->phase == QUIZ_ASKING) {
+        if (QuizAdvanceClock(q, seconds)) { g->state.edu.answered++; return; }
+        int option = QuizOptionFromCommand(command);
+        if (option >= 0 && QuizAnswer(q, option)) {
+            g->state.edu.answered++;
+            if (q->result == QUIZ_CORRECT) g->state.edu.correct++;
+        }
+        return;
+    }
+    (void)QuizAdvanceClock(q, seconds); /* feedback: question clock frozen */
+    if (command == COMMAND_CONTINUE && QuizCanContinue(q)) QuizResolve(g);
+}
+
 void GameAdvance(Game *g, double seconds, GameInput input)
 {
     if (!g || !g->ready || g->state.mode == GAME_ERROR) return;
@@ -386,6 +485,7 @@ void GameAdvance(Game *g, double seconds, GameInput input)
     UiDecision ui = g->modules.ui.input(g->modules.ui.life.context, &g->state, &input);
     GameCommand command = ui.command != COMMAND_NONE ? ui.command : input.command;
     if (Command(g, command)) return; /* Never simulate the elapsed time before a reset/resume. */
+    if (g->state.mode == GAME_QUIZ) { QuizFrame(g, seconds, command); return; }
     if (!Active(g->state.mode)) {
         g->accumulator = 0; g->pending_impulse = false; g->pending_attack = false;
         if ((g->state.mode==GAME_INTRO || g->state.mode==GAME_WON) && isfinite(seconds) && seconds>0) {
@@ -438,6 +538,6 @@ void GameDraw(Game *g)
 
 const char *GameModeName(GameMode mode)
 {
-    static const char *names[] = {"INTRO", "PLAY", "PAUSED", "PORTAL", "TRANSITION", "LOST", "WON", "ERROR", "BOSS"};
-    return mode >= GAME_INTRO && mode <= GAME_BOSS ? names[mode] : "INVALID";
+    static const char *names[] = {"INTRO", "PLAY", "PAUSED", "PORTAL", "TRANSITION", "LOST", "WON", "ERROR", "BOSS", "QUIZ"};
+    return mode >= GAME_INTRO && mode <= GAME_QUIZ ? names[mode] : "INVALID";
 }

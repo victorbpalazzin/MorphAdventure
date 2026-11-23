@@ -31,7 +31,15 @@ static void Icon(BoostType type,GameVec2 p,Color c)
         DrawTriangle((Vector2){p.x-5,p.y+9},(Vector2){p.x+5,p.y+9},(Vector2){p.x,p.y+2},c);
     }else{DrawText("x2",(int)p.x-11,(int)p.y-10,20,c);}
 }
-void ItemsDraw(const ItemsState *s)
+static void Letter(GameVec2 p,char letter,float scale,float angle,float alpha)
+{
+    char text[2]={letter,'\0'};Font font=GetFontDefault();float size=30*scale,spacing=2*scale;
+    Vector2 extent=MeasureTextEx(font,text,size,spacing),origin={extent.x/2,extent.y/2};
+    float degrees=angle*RAD2DEG;
+    DrawTextPro(font,text,(Vector2){p.x+1.5f*scale,p.y+2*scale},origin,degrees,size,spacing,Fade(GetColor(0x0b1630ff),alpha*.85f));
+    DrawTextPro(font,text,(Vector2){p.x,p.y},origin,degrees,size,spacing,Fade(WHITE,alpha));
+}
+void ItemsDraw(const ItemsState *s,const GameState *g)
 {
     for(unsigned i=0;i<s->fragment_count;i++){
         const ItemFragmentView *t=&s->fragments[i];float alpha=t->fade>0?fmaxf(0,1-t->fade/22):1;
@@ -44,6 +52,8 @@ void ItemsDraw(const ItemsState *s)
             Vector2 w=Point(t->position,cosf(b)*t->radius,sinf(b)*t->radius,scale,angle);
             DrawTriangle((Vector2){t->position.x,t->position.y},w,v,fill);DrawLineEx(v,w,3*scale,edge);
         }
+        char letter=ItemsFragmentLetter(g,t->id);
+        if(letter){Letter(t->position,letter,scale,angle,alpha);continue;}
         const float bolt[][2]={{5,-13},{-6,1},{2,1},{-4,13},{8,-3},{0,-3}};
         for(int j=0;j<5;j++)DrawLineEx(Point(t->position,bolt[j][0],bolt[j][1],scale,angle),Point(t->position,bolt[j+1][0],bolt[j+1][1],scale,angle),3*scale,Fade(WHITE,alpha));
     }

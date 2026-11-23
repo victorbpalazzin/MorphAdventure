@@ -27,6 +27,10 @@ No Visual Studio (multi-config), acrescente `-C Release` ou `-C Debug`. Para fil
 | `check-macro-ndebug` | contract | Compilado sempre com `NDEBUG`; **precisa falhar** (`WILL_FAIL`). Prova que `MORPH_CHECK` continua ativo em Release |
 | `tests-no-assert` | contract | Nenhum `assert()` em `tests/` |
 | `morph-headers-standalone` | (build) | Cada cabeçalho de `src/core/` compila sozinho em C99, duas vezes (include guard). Falha na compilação, não no CTest |
+| `edu-quiz` | core | Banco de perguntas (≥ 36, 4 alternativas distintas, 1 correta, explicação, todos os assuntos, respostas dos conectivos conferidas), cronômetro de 12 s, prazo determinístico (o 720º quadro de 1/60 s encerra), feedback congela o relógio, sem repetição imediata |
+| `edu-flow` | core | Coordenador real com módulos simulados: portal só após acerto, erro/tempo esgotado geram nova pergunta sem perder vida nem letras, simulação congelada, pausa/foco suspendem o cronômetro, segunda chance única (acerto, erro, tempo esgotado), proteção ao reviver, boss preservado e vitória só após Grootspectro; o mesmo fixture com o modo desligado confirma o arcade |
+| `edu-modules` | module | Módulos reais: letras só no educativo, coleta/IDs/pontos/reaparecimento idênticos ao arcade, HUD `LETRAS: 3/6`, entrada do painel sem conflito com o voo, perigos horizontais a cada 510 passos (8,5 s) |
+| `edu-flow-gui` | gui;edu | Todos os módulos reais no modo educativo: seis mundos com desafio, segunda chance na campanha e no boss, capturas em `build/tests/edu/captures/` |
 | `core-shell-smoke` | gui | Janela raylib real: 5 quadros, saída `initialized=1 ready=0 missing=0x3f frames=5` e captura PNG não vazia. No Linux sem monitor usa `xvfb-run`; sem ele, fica desabilitado |
 
 ## Checklist compartilhada (etapas 1 e 2)

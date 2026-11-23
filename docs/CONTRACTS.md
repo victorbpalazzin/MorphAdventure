@@ -1,6 +1,6 @@
 # Contrato de integração — Morph Adventure / C99 / raylib 5.5
 
-**Versão 5. Grootspectro e perigos horizontais integrados localmente.** Os seis módulos reais estão conectados. O núcleo coordena a campanha e a batalha final. Os cabeçalhos de src/core/ e as extensões ao final deste documento são a fonte de verdade; as notas das entregas iniciais abaixo registram a origem da arquitetura.
+**Versão 6. Grootspectro, perigos horizontais e modo educativo (opcional) integrados localmente.** Os seis módulos reais estão conectados. O núcleo coordena a campanha e a batalha final. Os cabeçalhos de src/core/ e as extensões ao final deste documento são a fonte de verdade; as notas das entregas iniciais abaixo registram a origem da arquitetura.
 
 ## Referência e escopo
 
@@ -267,12 +267,12 @@ As consultas de coleta verificam terreno/totens; perigos móveis não invalidam 
 
 | Mundo | px/passo | intervalo | aviso | oscilação px | máximo |
 |---|---:|---:|---:|---:|---:|
-| Ar | 5,58 | 540 | 75 | 4 | 2 |
-| Água | 6,12 | 540 | 72 | 6 | 2 |
-| Floresta | 6,66 | 540 | 70 | 5 | 2 |
-| Gelo | 7,20 | 540 | 68 | 2 | 2 |
-| Terra | 7,74 | 540 | 65 | 4 | 3 |
-| Fogo | 8,28 | 540 | 62 | 6 | 3 |
+| Ar | 5,58 | 510 | 75 | 4 | 2 |
+| Água | 6,12 | 510 | 72 | 6 | 2 |
+| Floresta | 6,66 | 510 | 70 | 5 | 2 |
+| Gelo | 7,20 | 510 | 68 | 2 | 2 |
+| Terra | 7,74 | 510 | 65 | 4 | 3 |
+| Fogo | 8,28 | 510 | 62 | 6 | 3 |
 
 Velocidade dos perigos varia ±4% por lançamento. Parâmetros em obstáculos.c.
 A verificação de rotas amostradas não prova que toda combinação futura é evitável;
@@ -338,7 +338,7 @@ de 20%, totalizando 38% acima dos intervalos originais. Velocidades preservadas.
 Novo ajuste: mais 30% sobre os intervalos vigentes (fator acumulado 1,794
 sobre os originais). Velocidades e atraso inicial preservados.
 
-Padronização vigente: intervalo-base de 540 passos (9 segundos sem slow motion)
+Padronização anterior: intervalo-base de 540 passos (9 segundos sem slow motion)
 entre perigos horizontais em TODOS os seis mundos, substituindo os ajustes
 percentuais anteriores. Geração pode ser adiada pela segurança da passagem.
 
@@ -353,3 +353,41 @@ preservam seus layouts. Títulos, narrativa e pontuação são desenhados fora d
 O core chama ui.step em INTRO/WON com tempo de apresentação limitado a 0,1 s por
 quadro. Isso não avança simulação, física, itens, vidas ou boss. Sem foco não avança;
 pausa permanece congelada. Draw é somente leitura. Vitória ainda exige BOSS_DONE.
+
+Ajuste vigente (modo educativo, aplicado aos dois modos): intervalo-base de 510 passos
+(8,5 segundos sem slow motion) entre perigos horizontais em todos os seis mundos.
+Velocidades, aviso, oscilação, limite simultâneo e atraso inicial preservados.
+
+## Extensão v6: modo educativo (MORPH_EDUCATIONAL)
+
+MORPH_CONTRACT_VERSION=6: GameState ganhou `edu` (EduState/QuizState), GameMode ganhou
+GAME_QUIZ e GameCommand ganhou COMMAND_ANSWER_A..D e COMMAND_CONTINUE, todos no fim
+das enumerações. Nenhuma assinatura de callback ou factory mudou. Recompilar tudo junto.
+
+A opção CMake MORPH_EDUCATIONAL (padrão OFF) define MORPH_EDUCATIONAL=0/1 como PUBLIC em
+morph_core. GameInit usa esse valor; GameInitMode permite aos testes escolher o modo.
+`edu.enabled` fica fixo durante a execução. Com OFF, nenhuma pergunta, cronômetro ou
+ressurreição existe: os caminhos novos dependem de `edu.enabled`.
+
+- Letras: apenas representação. Items desenha `ItemsFragmentLetter(state,id)` no lugar
+  do raio quando `edu.enabled`; geração, IDs, colisão, ímã, pontuação (35) e metas
+  4/6/8/10/12/16 não mudam. A energia de combate do Grootspectro continua igual.
+- Portal: no mesmo instante em que o arcade iniciaria PORTAL (bateria completa +
+  path_clear), o core abre GAME_QUIZ/QUIZ_PASSAGE. Só COMMAND_CONTINUE após um acerto
+  chama begin_portal. Erro ou tempo esgotado abrem outra pergunta (nunca a anterior);
+  sem perda de vidas, letras ou pontos. `portal_unlocked` zera em BeginWorld.
+- Segunda chance: quando Damage zera as vidas e `revive_used=false`, o core abre
+  QUIZ_REVIVE (vidas permanecem 0). Acerto: 1 vida, mesmo mundo/score/letras/boss,
+  player.reset_world (180,245) + apply_hit e 180 passos de proteção no core
+  (`grace_steps`, Damage rejeita impactos). Erro/tempo esgotado: GAME_LOST após o
+  feedback. Uma tentativa por aventura; NewRun restaura a disponibilidade.
+- Cronômetro: 12 s de tempo de apresentação (segundos reais do quadro, limitados a
+  0,1 s), independente de world_steps/slow motion. O tempo do quadro é aplicado antes
+  da entrada do mesmo quadro: resposta no quadro em que o prazo acaba é rejeitada.
+  O feedback congela o relógio. Proteções de 0,35 s (entrada) e 0,5 s (continuar)
+  evitam que um impulso/clique em curso responda sem querer.
+- GAME_QUIZ não executa Step: player, obstáculos, itens, boosts, cenário, portal, boss
+  e pontuação ficam congelados. P/perda de foco levam a PAUSED com resume_mode=QUIZ;
+  a volta não aplica o tempo acumulado.
+- UI: UiQuizButtons/UiQuizDraw (somente leitura). Teclas 1-4/A-D, setas+Enter/Espaço
+  e clique; o foco começa vazio para que Espaço de voo não responda. Up/W não respondem.

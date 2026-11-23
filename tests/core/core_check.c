@@ -92,7 +92,7 @@ static GameInput Focused(void) { GameInput i={0};i.focused=true;return i; }
 static void Tick(Game *g) { GameAdvance(g,MORPH_STEP_SECONDS,Focused()); }
 static void Cmd(Game *g,GameCommand command) { GameInput i=Focused();i.command=command;GameAdvance(g,1.0,i); }
 static void Start(Game *g,Fixture *f)
-{ memset(f,0,sizeof(*f));GameModules m=Modules(f);CHECK(GameInit(g,&m));CHECK(g->ready);Cmd(g,COMMAND_START);CHECK(g->state.mode==GAME_PLAY); }
+{ memset(f,0,sizeof(*f));GameModules m=Modules(f);CHECK(GameInitMode(g,&m,false)); /* arcade regression */ CHECK(g->ready);Cmd(g,COMMAND_START);CHECK(g->state.mode==GAME_PLAY); }
 static void QueueFragment(Fixture *f,unsigned multiplier)
 { GameEvent e={0};e.type=EVENT_FRAGMENT_COLLECTED;e.multiplier=multiplier;CHECK(GameEnqueueEvent(&f->queued,e)); }
 

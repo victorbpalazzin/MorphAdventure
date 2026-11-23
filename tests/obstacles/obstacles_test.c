@@ -30,7 +30,7 @@ static void CheckGeometryAndWarnings(void)
     const ObstacleHazardType expected[]={HAZARD_WIND,HAZARD_JELLY,HAZARD_VINE,HAZARD_ICE,HAZARD_ROCK,HAZARD_FIRE};
     for(int w=0;w<6;w++) {
         Reset(w,123);const ObstacleHazardConfig *hc=ObstaclesHazardSettings(w);
-        MORPH_CHECK_NEAR(hc->interval/60.0f,9.0f,.00001f);
+        MORPH_CHECK_NEAR(hc->interval/60.0f,8.5f,.00001f); /* 510 passos = 8,5 s */
         if(w){MORPH_CHECK(hc->speed>ObstaclesHazardSettings(w-1)->speed);MORPH_CHECK(hc->interval==ObstaclesHazardSettings(w-1)->interval);}
         for(int i=0;i<600 && !ObstaclesInspect().hazard_count;i++)Generate();
         ObstaclesState *state=api.life.context;MORPH_CHECK(state->hazard_count==1);

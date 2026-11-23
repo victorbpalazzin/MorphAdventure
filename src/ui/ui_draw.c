@@ -44,7 +44,7 @@ void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
     unsigned collected=combat?g->boss.energy.collected:v->collected;
     unsigned required=combat?g->boss.energy.required:GameEnergyRequired(g->world);bool full=required>0 && collected>=required;
     float fraction=combat?(required?(float)collected/required:0):GameEnergyFraction(v->collected,g->world);
-    snprintf(text,sizeof(text),"ENERGIA  %u/%u  %d%%",collected,required,full?100:(int)floorf(fraction*100));
+    UiProgressLabel(g,collected,required,full?100:(int)floorf(fraction*100),text,sizeof(text));
     DrawText(text,563,20,18,full?mint:ink);
     Rectangle battery={565,47,275,22};
     if(full)DrawRectangleRounded((Rectangle){560,42,285,32},.4f,12,Fade(mint,.12f+.12f*fabsf(sinf(s->charge_pulse*.25f))));
@@ -80,6 +80,10 @@ void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
         DrawRectangleRounded((Rectangle){350,119,260,70},.25f,12,Fade(GetColor(0x10283dff),alpha*.55f));
         snprintf(text,sizeof(text),"MUNDO %02d",world+1);Center(text,127,16,Fade(gold,alpha));Center(names[world],150,30,Fade(ink,alpha));
     }
+    if(g->edu.enabled && g->edu.grace_steps>0 && (g->mode==GAME_PLAY || g->mode==GAME_BOSS)){
+        snprintf(text,sizeof(text),"PROTEGIDO  %ds",(int)ceilf(g->edu.grace_steps/60));
+        Panel((Rectangle){18,492,200,32},GetColor(0x10283de6));DrawText(text,32,499,18,mint);
+    }
     bool modal=g->mode==GAME_PAUSED||g->mode==GAME_LOST;
     if(modal){
         DrawRectangle(0,0,960,540,GetColor(0x071322a6));Panel((Rectangle){150,98,660,382},GetColor(0x132c3ff5));
@@ -96,4 +100,5 @@ void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
     UiButton b[2];unsigned n=UiButtons(g->mode,b);
     for(unsigned i=0;i<n;i++)Button(b[i],s->focus==(int)i && modal);
     if(modal)Center("Espaco ativa a opcao em foco  |  P pausa durante a partida",497,16,ink);
+    if(g->mode==GAME_QUIZ)UiQuizDraw(s,g);
 }

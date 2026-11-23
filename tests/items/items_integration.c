@@ -11,7 +11,7 @@ static void ObserveEvent(void *p,const GameEvent *e)
 static void CheckPhaseIntegration(void)
 {
     Game g;Fixture f={0};GameModules m=Modules(&f);m.items=ItemsModuleCreate();
-    CHECK(GameInit(&g,&m));Cmd(&g,COMMAND_START);ItemsState *s=m.items.life.context;
+    CHECK(GameInitMode(&g,&m,false));Cmd(&g,COMMAND_START); /* arcade */ItemsState *s=m.items.life.context;
     s->powers[0]=(ItemPowerView){1,BOOST_PHASE,{184,245},21};s->power_count=1;Tick(&g);
     s->powers[0]=(ItemPowerView){2,BOOST_SHIELD,{184,245},21};s->power_count=1;Tick(&g);
     f.collision=true;Tick(&g);CHECK(g.state.lives==3 && f.hits==0 && m.items.view(s).shield);
@@ -26,7 +26,7 @@ static void CheckPhaseIntegration(void)
 int main(void)
 {
     Game g;Fixture f={0};GameModules m=Modules(&f);m.items=ItemsModuleCreate();m.ui.step=ObserveUi;m.effects.event=ObserveEvent;
-    CHECK(GameInit(&g,&m));Cmd(&g,COMMAND_START);ItemsState *s=m.items.life.context;
+    CHECK(GameInitMode(&g,&m,false));Cmd(&g,COMMAND_START); /* arcade */ItemsState *s=m.items.life.context;
     s->power_count=1;s->powers[0]=(ItemPowerView){1,BOOST_DOUBLE,{184,245},21};Tick(&g);
     CHECK(m.items.view(s).score_multiplier==2);
     s->fragment_count=1;s->fragments[0]=(ItemFragmentView){0,{184,245},23,0,0};f.passed=1;Tick(&g);

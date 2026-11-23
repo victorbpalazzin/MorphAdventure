@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
     InitWindow(1100, 700, "Morph Adventure - base C/raylib (pessoa 1)");
 #ifdef MORPH_MODULES_LINKED
-    SetWindowTitle("Morph Adventure");
+    SetWindowTitle(GameEducationalBuild() ? "Morph Adventure - Modo Educativo" : "Morph Adventure");
 #endif
     if (!IsWindowReady()) return 1;
     SetWindowMinSize(480, 270);
@@ -68,8 +68,10 @@ int main(int argc, char **argv)
     GameModules modules = {0};
     modules.contract_version = MORPH_CONTRACT_VERSION;
 #ifdef MORPH_MODULES_LINKED
-    ItemsSetSeed((uint32_t)time(NULL) ^ (uint32_t)clock() ^
-        (uint32_t)(GetTime()*1000000.0) ^ ((uint32_t)GetRandomValue(0,INT_MAX)<<1));
+    uint32_t session_seed = (uint32_t)time(NULL) ^ (uint32_t)clock() ^
+        (uint32_t)(GetTime()*1000000.0) ^ ((uint32_t)GetRandomValue(0,INT_MAX)<<1);
+    ItemsSetSeed(session_seed);
+    GameSetQuizSeed(session_seed ^ 0x9e3779b9u);
     modules = MorphCreateModules();
 #endif
     Game game;
@@ -82,6 +84,20 @@ int main(int argc, char **argv)
         input.impulse_pressed = IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W);
         input.attack_pressed = IsKeyPressed(KEY_J);
         if (IsKeyPressed(KEY_P)) input.command = COMMAND_TOGGLE_PAUSE;
+        if (game.state.mode == GAME_QUIZ) {
+            /* Challenge keys: 1-4 or A-D answer directly; arrows move the focus;
+             * Space/Enter activate it. Flight keys (Up/W) never answer. */
+            static const int keys[4][3] = {{KEY_ONE, KEY_KP_1, KEY_A}, {KEY_TWO, KEY_KP_2, KEY_B},
+                                           {KEY_THREE, KEY_KP_3, KEY_C}, {KEY_FOUR, KEY_KP_4, KEY_D}};
+            static const GameCommand answers[4] = {COMMAND_ANSWER_A, COMMAND_ANSWER_B, COMMAND_ANSWER_C, COMMAND_ANSWER_D};
+            input.impulse_pressed = IsKeyPressed(KEY_SPACE);
+            for (int i = 0; i < 4; i++)
+                for (int k = 0; k < 3; k++) if (IsKeyPressed(keys[i][k])) input.command = answers[i];
+#ifdef MORPH_MODULES_LINKED
+            if (IsKeyPressed(KEY_UP)) UiQueueNavigation(-1, false);
+            if (IsKeyPressed(KEY_DOWN)) UiQueueNavigation(1, false);
+#endif
+        }
 #ifdef MORPH_MODULES_LINKED
         if (IsKeyPressed(KEY_TAB)) UiQueueNavigation(IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? -1 : 1, false);
         if (IsKeyPressed(KEY_ENTER)) UiQueueNavigation(0, true);

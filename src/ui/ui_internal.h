@@ -10,9 +10,14 @@ typedef struct UiState {
     int focus,navigation;
     bool activate;
     GameMode input_mode;
+    int quiz_focus;          /* -1: nothing focused, so a stray Space cannot answer */
+    unsigned quiz_serial;
 } UiState;
 typedef struct UiButton { GameRect rect; GameCommand command; const char *label; } UiButton;
 unsigned UiButtons(GameMode mode,UiButton out[2]);
+/* Logic challenge: four alternatives while asking, one continue button in feedback. */
+unsigned UiQuizButtons(const QuizState *quiz,UiButton out[4]);
+void UiQuizDraw(const UiState *state,const GameState *game);
 void UiNarrativeDraw(const UiState *state,const GameState *game);
 void UiDraw(const UiState *state,const GameState *game,const ItemsView *items);
 #endif

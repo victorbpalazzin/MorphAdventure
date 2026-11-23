@@ -14,6 +14,7 @@ option(MORPH_BUILD_GAME "Compila os executáveis que dependem de raylib" ON)
 option(MORPH_BUILD_TESTS "Compila os testes de lógica sem janela (CTest)" ON)
 option(MORPH_WARNINGS_AS_ERRORS "Trata warnings do código do projeto como erro" ON)
 option(MORPH_MODULES_LINKED "Liga os módulos reais (exige src/core/composition.c da pessoa 1)" OFF)
+option(MORPH_EDUCATIONAL "Versão educativa: letras, desafios de lógica com 12 s e segunda chance (OFF = arcade)" OFF)
 set(MORPH_SANITIZE "" CACHE STRING
     "Sanitizers para GCC/Clang, separados por vírgula (ex.: address,undefined). Vazio desliga.")
 
@@ -37,9 +38,14 @@ add_library(morph_core STATIC
     src/player/collision.c
     src/boss/boss.c
     src/items/combat_energy.c
+    src/edu/questions.c
+    src/edu/quiz.c
     src/core/game.c
     src/core/viewport.c)
 target_include_directories(morph_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+# PUBLIC: o executável, os módulos e todos os testes ligados a morph_core
+# enxergam o mesmo valor, sem divergência entre jogo e testes.
+target_compile_definitions(morph_core PUBLIC MORPH_EDUCATIONAL=$<IF:$<BOOL:${MORPH_EDUCATIONAL}>,1,0>)
 if(NOT WIN32)
     target_link_libraries(morph_core PUBLIC m)
 endif()
@@ -75,4 +81,4 @@ endif()
 include(cmake/MorphPackage.cmake)
 
 message(STATUS "Morph Adventure ${PROJECT_VERSION}: jogo=${MORPH_BUILD_GAME} testes=${MORPH_BUILD_TESTS} "
-               "modulos_ligados=${MORPH_MODULES_LINKED} sanitize='${MORPH_SANITIZE}'")
+               "modulos_ligados=${MORPH_MODULES_LINKED} educativo=${MORPH_EDUCATIONAL} sanitize='${MORPH_SANITIZE}'")

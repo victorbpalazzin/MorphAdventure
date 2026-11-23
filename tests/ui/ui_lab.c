@@ -205,7 +205,7 @@ int main(int argc,char **argv)
     if(capture){directory=argv[2];}SetConfigFlags(FLAG_WINDOW_RESIZABLE|(capture?FLAG_WINDOW_HIDDEN:0));
     InitWindow(960,540,"Morph Adventure - laboratorio de integracao");MORPH_CHECK(IsWindowReady());SetExitKey(KEY_NULL);SetWindowMinSize(480,270);
     canvas=LoadRenderTexture(960,540);MORPH_CHECK(IsRenderTextureValid(canvas));SetTextureFilter(canvas.texture,TEXTURE_FILTER_BILINEAR);
-    GameModules modules=MorphCreateModules();MORPH_CHECK(GameInit(&game,&modules) && game.ready);
+    GameModules modules=MorphCreateModules();MORPH_CHECK(GameInitMode(&game,&modules,false) && game.ready); /* arcade flow; educational flow: tests/edu */
     if(capture){Validate();ValidateFlight();}else{
         SetTargetFPS(60);
         while(!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)){

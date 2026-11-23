@@ -12,5 +12,5 @@ typedef struct ItemsState {
     ItemFragmentView fragments[ITEMS_FRAGMENT_CAPACITY];
     ItemPowerView powers[ITEMS_POWER_CAPACITY];
 } ItemsState;
-void ItemsDraw(const ItemsState *state);
+void ItemsDraw(const ItemsState *state,const GameState *game);
 #endif

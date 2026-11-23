@@ -1,12 +1,13 @@
 #include "ui_internal.h"
 #include "core/game.h"
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 static UiState state;
 static bool Init(void *p){memset(p,0,sizeof(UiState));return true;}
 static void Shutdown(void *p){memset(p,0,sizeof(UiState));}
 static void Reset(void *p,const GameState *g,const WorldConfig *c)
-{(void)c;UiState *s=p;memset(s,0,sizeof(*s));s->score=g->score;s->title_steps=185;s->input_mode=g->mode;}
+{(void)c;UiState *s=p;memset(s,0,sizeof(*s));s->score=g->score;s->title_steps=185;s->input_mode=g->mode;s->quiz_focus=-1;s->quiz_serial=g->edu.quiz.serial;}
 unsigned UiButtons(GameMode mode,UiButton b[2])
 {
     if(mode==GAME_INTRO || mode==GAME_WON){
@@ -20,13 +21,47 @@ unsigned UiButtons(GameMode mode,UiButton b[2])
         mode==GAME_PAUSED?"Continuar":"Tentar novamente"};
     b[1]=(UiButton){{300,419,360,40},COMMAND_RESTART,"Voltar ao inicio"};return 2;
 }
+unsigned UiQuizButtons(const QuizState *q,UiButton b[4])
+{
+    if(q->kind==QUIZ_NONE)return 0;
+    if(q->phase==QUIZ_FEEDBACK){
+        const char *label=q->kind==QUIZ_REVIVE?(q->result==QUIZ_CORRECT?"Continuar aventura":"Ver resultado"):
+            q->result==QUIZ_CORRECT?"Abrir portal":"Próxima pergunta";
+        b[0]=(UiButton){{320,420,320,50},COMMAND_CONTINUE,label};return 1;
+    }
+    static const GameCommand answers[4]={COMMAND_ANSWER_A,COMMAND_ANSWER_B,COMMAND_ANSWER_C,COMMAND_ANSWER_D};
+    float top=q->kind==QUIZ_REVIVE?290:262;
+    for(unsigned i=0;i<4;i++)b[i]=(UiButton){{96,top+i*52.0f,768,44},answers[i],""};
+    return 4;
+}
+void UiProgressLabel(const GameState *g,unsigned collected,unsigned required,int percent,char *out,size_t size)
+{
+    if(!out || !size)return;
+    if(g && g->edu.enabled && g->boss.stage==BOSS_DORMANT)snprintf(out,size,"LETRAS: %u/%u",collected,required);
+    else snprintf(out,size,"ENERGIA  %u/%u  %d%%",collected,required,percent);
+}
 static bool Inside(GameVec2 p,GameRect r)
 {return p.x>=r.x && p.y>=r.y && p.x<r.x+r.width && p.y<r.y+r.height;}
+static UiDecision QuizInput(UiState *s,const GameState *g,const GameInput *in,int nav,bool activate)
+{
+    UiDecision result={0};UiButton b[4];const QuizState *q=&g->edu.quiz;unsigned n=UiQuizButtons(q,b);
+    if(s->quiz_serial!=q->serial){s->quiz_serial=q->serial;s->quiz_focus=q->phase==QUIZ_FEEDBACK?0:-1;}
+    if(!in->focused || !n)return result;
+    if(nav)s->quiz_focus=s->quiz_focus<0?(nav>0?0:(int)n-1):(s->quiz_focus+(nav>0?1:(int)n-1))%(int)n;
+    if(s->quiz_focus>=(int)n)s->quiz_focus=-1;
+    if(in->pointer_pressed && in->pointer_inside){
+        result.consumes_pointer=true; /* a click on the challenge never becomes a flap */
+        for(unsigned i=0;i<n;i++)if(Inside(in->pointer,b[i].rect)){s->quiz_focus=(int)i;result.command=b[i].command;return result;}
+    }
+    if((activate || in->impulse_pressed) && s->quiz_focus>=0)result.command=b[s->quiz_focus].command;
+    return result;
+}
 static UiDecision Input(void *p,const GameState *g,const GameInput *in)
 {
     UiState *s=p;UiDecision result={0};UiButton buttons[2];unsigned n=UiButtons(g->mode,buttons);
     if(s->input_mode!=g->mode){s->input_mode=g->mode;s->focus=0;}
     int nav=s->navigation;bool activate=s->activate;s->navigation=0;s->activate=false;
+    if(g->mode==GAME_QUIZ)return QuizInput(s,g,in,nav,activate);
     if(!in->focused || !n)return result;
     if(nav)s->focus=(s->focus+(nav>0?1:(int)n-1))%(int)n;
     if(s->focus<0 || s->focus>=(int)n)s->focus=0;

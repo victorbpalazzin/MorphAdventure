@@ -155,7 +155,19 @@ static void Collect(void *ctx,const GameState *g,const FrameContext *f,PlayerVie
     }
     s->power_count=kept;
 }
-static void Draw(void *ctx,const GameState *g){(void)g;ItemsDraw(ctx);}
+static void Draw(void *ctx,const GameState *g){ItemsDraw(ctx,g);}
+/* One letter per required fragment (4/6/8/10/12/16), no words or anagrams. */
+static const char *const world_letters[MORPH_WORLD_COUNT]={
+    "ARVE", "AGUOMR", "FLORESTA", "GELONVIBRC", "TERAPDMSOLCH", "FOGCHAMBRSELUZIN"
+};
+const char *ItemsWorldLetters(int world)
+{return world>=0 && world<MORPH_WORLD_COUNT?world_letters[world]:"";}
+char ItemsFragmentLetter(const GameState *g,unsigned id)
+{
+    if(!g || !g->edu.enabled || g->world<0 || g->world>=MORPH_WORLD_COUNT)return '\0';
+    const char *set=world_letters[g->world];size_t n=strlen(set);
+    return n?set[id%n]:'\0';
+}
 ItemsApi ItemsModuleCreate(void)
 {return (ItemsApi){{&state,Init,Reset,Shutdown},Timers,View,ConsumeShield,Collect,Draw};}
 void ItemsSetSeed(uint32_t seed){reset_seed=seed;}

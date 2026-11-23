@@ -25,4 +25,10 @@ ItemEnergyView ItemsEnergy(void); /* copy: UI cannot mutate the module */
 ItemsSnapshot ItemsInspect(void); /* copy for integration/debugging */
 const ItemBoostDefinition *ItemsBoostDefinition(BoostType type);
 void ItemsSetSeed(uint32_t seed); /* session seed; combined with run_id/world, reproducible in tests */
+/* Modo educativo: letra exibida no fragmento de progressão `id` do mundo atual.
+ * Retorna '\0' no arcade (game->edu.enabled=false): o raio original é desenhado.
+ * Só muda a representação: geração, IDs, colisão, magnetismo e pontos são os mesmos.
+ * A energia de combate do Grootspectro nunca usa letras. */
+char ItemsFragmentLetter(const GameState *game, unsigned id);
+const char *ItemsWorldLetters(int world); /* conjunto próprio de cada mundo */
 #endif

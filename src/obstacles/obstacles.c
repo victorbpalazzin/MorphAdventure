@@ -12,9 +12,10 @@ const WorldConfig ObstacleWorldConfigs[MORPH_WORLD_COUNT]={
     {"Fogo",6.2f,170,52.7f,32,.029f,4500,290,0}
 };
 static const ObstacleHazardConfig hazard_configs[MORPH_WORLD_COUNT]={
-    {5.58f,540,4,.035f,75,2}, {6.12f,540,6,.045f,72,2},
-    {6.66f,540,5,.05f,70,2}, {7.20f,540,2,.055f,68,2},
-    {7.74f,540,4,.05f,65,3}, {8.28f,540,6,.06f,62,3}
+    /* Interval 510 world steps = 8.5 s without slow motion, in all six worlds. */
+    {5.58f,510,4,.035f,75,2}, {6.12f,510,6,.045f,72,2},
+    {6.66f,510,5,.05f,70,2}, {7.20f,510,2,.055f,68,2},
+    {7.74f,510,4,.05f,65,3}, {8.28f,510,6,.06f,62,3}
 };
 const ObstacleHazardConfig *ObstaclesHazardSettings(int world)
 {return world>=0 && world<MORPH_WORLD_COUNT?&hazard_configs[world]:NULL;}
