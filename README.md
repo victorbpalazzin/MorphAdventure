@@ -383,4 +383,517 @@ Teclado e mouse permanecem disponíveis tanto no Arcade quanto no Educativo.
 
 A versão Educativa possui suporte nativo ao controle DualShock 4, conectado por cabo USB ao Windows.
 
-O controle utiliza as funções de gamepad da raylib 5.5, sem exigir obrigatoriamente softwares
+O controle utiliza as funções de gamepad da raylib 5.5, sem exigir obrigatoriamente softwares adicionais.
+
+| Botão do PS4 | Função |
+|---|---|
+| X (cruz) | Impulsionar personagem / confirmar opções |
+| Quadrado | Disparar megarraio contra Grootspectro |
+| OPTIONS | Pausar ou retomar |
+| Direcional | Navegar pelos menus e perguntas |
+| Analógico esquerdo | Navegar pelos menus e perguntas |
+| Círculo | Voltar ou cancelar quando a tela permitir |
+
+O sistema identifica conexão e desconexão do dispositivo durante a execução.
+
+Também são utilizados mecanismos para evitar:
+
+- Comandos involuntários ao conectar o controle.
+- Repetições excessivas de navegação.
+- Impulsos acidentais após confirmar perguntas.
+- Conflitos entre ações de menus e ações do personagem.
+
+**Importante:** na implementação atual, o suporte ao controle está ativado somente quando `MORPH_EDUCATIONAL=ON`. A versão Arcade distribuída originalmente utiliza teclado e mouse.
+
+### Testar o controle
+
+Na compilação educativa, o projeto disponibiliza uma tela de diagnóstico para verificar o reconhecimento do controle.
+
+Execute:
+
+```bash
+./build-educativo/morph-adventure.exe --gamepad-test
+```
+
+Essa tela apresenta o nome do dispositivo conectado, o estado dos botões e os valores do analógico esquerdo.
+
+O suporte prioriza o DualShock 4, mas outros controles compatíveis reconhecidos pela raylib também podem funcionar.
+
+---
+
+## 🌳 Grootspectro — Batalha final
+
+Após atravessar os seis mundos, o jogador enfrenta **Grootspectro, o Titã Espectral da Floresta**.
+
+O confronto apresenta um sistema próprio de combate.
+
+### Mecânicas
+
+- Três segmentos de vida do chefe.
+- Projéteis espectrais.
+- Ataques com dificuldade progressiva.
+- Bateria especial de combate.
+- Fragmentos multicoloridos de energia.
+- Megarraio arco-íris.
+- Animação de derrota e tela de vitória.
+
+O jogador precisa coletar **quatro fragmentos especiais** para carregar um disparo do megarraio.
+
+Cada disparo completo remove um segmento de vida do chefe.
+
+São necessários três disparos bem-sucedidos para derrotá-lo.
+
+Durante o megarraio, o personagem assume uma condição especial de combate e dissipa os ataques presentes.
+
+### Funcionamento nas duas versões
+
+A batalha final utiliza a mesma mecânica no Arcade e no Educativo.
+
+Mesmo na versão Educativa, os fragmentos da bateria de combate **continuam sendo energia, não letras**.
+
+A diferença é que o jogador pode utilizar sua segunda chance durante o confronto, caso ainda não a tenha consumido.
+
+A vitória só é apresentada após a derrota completa de Grootspectro e a conclusão de sua animação.
+
+---
+
+## 🛠️ Tecnologias utilizadas
+
+| Tecnologia | Aplicação |
+|---|---|
+| C99 | Linguagem principal do jogo |
+| raylib 5.5 | Renderização, janela, teclado, mouse e gamepads |
+| CMake | Configuração do projeto |
+| Ninja | Automação da compilação |
+| GCC / MSYS2 UCRT64 | Compilação para Windows |
+| CTest | Execução dos testes automatizados |
+| Git | Controle de versões |
+| GitHub | Hospedagem, colaboração e Releases |
+| VS Code | Desenvolvimento e manutenção |
+
+O jogo executável foi implementado nativamente em C, sem depender de HTML, CSS ou JavaScript durante sua execução.
+
+O arquivo HTML original foi mantido no repositório como parte do histórico do protótipo.
+
+---
+
+## 🧩 Arquitetura e organização
+
+O projeto utiliza uma estrutura modular, com responsabilidades distribuídas entre os componentes.
+
+```text
+MorphAdventure/
+│
+├── CMakeLists.txt
+├── README.md
+├── MorphAdventure.html
+│
+├── src/
+│   ├── main.c
+│   │
+│   ├── core/
+│   │   ├── game.c
+│   │   ├── game.h
+│   │   ├── game_types.h
+│   │   ├── composition.c
+│   │   └── viewport.c
+│   │
+│   ├── player/
+│   │   └── Personagens, física e colisões
+│   │
+│   ├── worlds/
+│   │   └── Cenários e parallax
+│   │
+│   ├── obstacles/
+│   │   └── Obstáculos e perigos ambientais
+│   │
+│   ├── items/
+│   │   └── Coletáveis, energia e boosts
+│   │
+│   ├── ui/
+│   │   └── HUD, menus e perguntas
+│   │
+│   ├── effects/
+│   │   └── Portais, partículas e transições
+│   │
+│   ├── boss/
+│   │   └── Grootspectro e regras de combate
+│   │
+│   ├── edu/
+│   │   ├── questions.c
+│   │   ├── questions.h
+│   │   ├── quiz.c
+│   │   └── quiz.h
+│   │
+│   └── input/
+│       ├── gamepad.c
+│       └── gamepad.h
+│
+├── tests/
+│   ├── core/
+│   ├── player/
+│   ├── worlds/
+│   ├── obstacles/
+│   ├── items/
+│   ├── ui/
+│   ├── boss/
+│   ├── edu/
+│   └── input/
+│
+├── cmake/
+│   └── Configuração e empacotamento
+│
+├── docs/
+│   └── Contratos e documentação técnica
+│
+└── scripts/
+    └── Scripts auxiliares
+```
+
+### Responsabilidades principais
+
+**Core:** coordena os estados, a simulação, os eventos e a progressão da aventura.
+
+**Player:** implementa física, movimentação, colisões e representação dos personagens.
+
+**Worlds:** produz os seis ambientes e as camadas gráficas.
+
+**Obstacles:** controla obstáculos, dificuldade e perigos especiais.
+
+**Items:** gerencia coletáveis, energia, boosts e corações extras.
+
+**UI:** apresenta HUD, botões, menus e desafios.
+
+**Effects:** controla partículas, portais e transições.
+
+**Boss:** implementa as regras do confronto contra Grootspectro.
+
+**Edu:** organiza o banco de perguntas, a seleção das questões, o cronômetro e a avaliação das respostas.
+
+**Input:** converte comandos do controle em ações compatíveis com o sistema de entrada do jogo.
+
+A arquitetura permite aproveitar os mesmos módulos nas versões Arcade e Educativa, evitando duplicação integral do código.
+
+---
+
+## ⚙️ Como compilar
+
+A compilação é realizada preferencialmente pelo **MSYS2 UCRT64**, no Windows.
+
+### Pré-requisitos
+
+- Git.
+- MSYS2 UCRT64.
+- GCC.
+- CMake 3.16 ou superior.
+- Ninja.
+- Conexão com a internet na primeira configuração, caso a raylib precise ser obtida pelo CMake.
+
+A versão utilizada da raylib é fixada em 5.5.
+
+### Clonar o repositório
+
+```bash
+git clone https://github.com/victorbpalazzin/MorphAdventure.git
+
+cd MorphAdventure
+```
+
+### Compilar a versão Arcade
+
+A versão Arcade utiliza `MORPH_EDUCATIONAL=OFF`.
+
+```bash
+cmake -S . -B build-arcade -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DMORPH_MODULES_LINKED=ON \
+  -DMORPH_EDUCATIONAL=OFF
+```
+
+Compilar:
+
+```bash
+cmake --build build-arcade
+```
+
+Executar:
+
+```bash
+./build-arcade/morph-adventure.exe
+```
+
+### Compilar a versão Educativa
+
+Primeiro, selecione a branch que contém a implementação educativa:
+
+```bash
+git fetch origin
+
+git switch feature/modo-educativo
+```
+
+Configure a compilação:
+
+```bash
+cmake -S . -B build-educativo -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DMORPH_MODULES_LINKED=ON \
+  -DMORPH_EDUCATIONAL=ON
+```
+
+Compilar:
+
+```bash
+cmake --build build-educativo
+```
+
+Executar:
+
+```bash
+./build-educativo/morph-adventure.exe
+```
+
+### Alternância entre versões
+
+A opção CMake `MORPH_EDUCATIONAL` determina qual experiência será compilada.
+
+| Configuração | Resultado |
+|---|---|
+| `OFF` | Arcade |
+| `ON` | Educativo |
+
+O padrão é `OFF`.
+
+Não existe seleção de modos no menu inicial: as versões são definidas na compilação.
+
+As pastas de build devem permanecer separadas para evitar conflitos de configuração.
+
+---
+
+## ✅ Testes e validação
+
+O projeto utiliza o **CTest** para executar testes automatizados.
+
+### Executar os testes do Arcade
+
+```bash
+ctest --test-dir build-arcade --output-on-failure
+```
+
+### Executar os testes do Educativo
+
+```bash
+ctest --test-dir build-educativo --output-on-failure
+```
+
+### Testes realizados
+
+Os testes abrangem:
+
+- Inicialização e encerramento do jogo.
+- Atualização da simulação.
+- Física e colisões.
+- Sistema de vidas.
+- Pontuação.
+- Fragmentos e letras coletáveis.
+- Metas de progressão.
+- Boosts.
+- Portais e transições.
+- Interface e navegação.
+- Comportamento da batalha final.
+- Banco de questões.
+- Cronômetro de 12 segundos.
+- Respostas corretas e incorretas.
+- Tempo esgotado.
+- Segunda chance e ressurreição.
+- Conexão e desconexão de controles.
+- Mapeamento de comandos do DualShock 4.
+- Compatibilidade entre as regras das versões Arcade e Educativa.
+
+### Laboratórios e testes gráficos
+
+O projeto também contém executáveis específicos de validação visual.
+
+Entre eles estão:
+
+- `worlds-preview`: pré-visualização dos seis mundos.
+- `edu-lab`: teste de integração das mecânicas educativas.
+- `pad-lab`: teste de navegação e comandos de gamepad.
+
+O teste visual dos mundos pode produzir capturas dos cenários e personagens, auxiliando na validação gráfica e na documentação.
+
+### Validação no Windows
+
+A versão Arcade v1.0.0 passou por compilação Release, execução manual e **17 testes automatizados aprovados** na validação registrada.
+
+A versão Educativa v1.0.0 também foi compilada e teve seus testes automatizados executados com sucesso no Windows, além de testes manuais de funcionamento, incluindo o controle DualShock 4.
+
+Os testes automatizados complementam a validação humana, mas não substituem a avaliação contínua de dificuldade e jogabilidade.
+
+---
+
+## 📦 Distribuição e empacotamento
+
+As versões são distribuídas em arquivos ZIP compactos, contendo apenas os elementos necessários à execução.
+
+### Arcade
+
+```text
+MorphAdventure-Arcade-v1.0.0-Windows-x64.zip
+└── entrega-arcade/
+    ├── morph-adventure.exe
+    └── LEIA-ME.txt
+```
+
+### Educativo
+
+```text
+MorphAdventure-Educativo-v1.0.0-Windows-x64.zip
+└── entrega-educativo/
+    ├── morph-adventure.exe
+    └── LEIA-ME.txt
+```
+
+Os pacotes de distribuição não precisam incluir:
+
+- Código-fonte.
+- Cabeçalhos de desenvolvimento da raylib.
+- Bibliotecas estáticas usadas na compilação.
+- Arquivos de teste.
+- Configurações internas do CMake.
+
+O executável é compilado com as dependências apropriadas para Windows, sendo necessário apenas um sistema compatível.
+
+As Releases são mantidas de maneira independente para preservar o histórico do projeto.
+
+---
+
+## 🔀 Organização das branches
+
+| Branch | Finalidade |
+|---|---|
+| `main` | Base estável da versão Arcade |
+| `feature/modo-educativo` | Implementação educativa e suporte ao DualShock 4 |
+| `feature/grootspectro` | Desenvolvimento e integração da batalha final |
+
+A versão educativa foi desenvolvida separadamente para evitar alterações involuntárias na experiência Arcade já publicada.
+
+A utilização de branches, commits e revisões facilita o acompanhamento da evolução do projeto.
+
+---
+
+## 🚀 Evolução do Morph Adventure
+
+O desenvolvimento passou por diferentes etapas:
+
+**1. Protótipo inicial**
+
+Criação de um jogo de voo lateral em HTML, inspirado em mecânicas de Flappy Bird.
+
+**2. Migração para C99**
+
+Reconstrução do projeto com raylib 5.5, permitindo execução nativa no Windows.
+
+**3. Modularização**
+
+Divisão do desenvolvimento em sistemas de física, cenários, obstáculos, itens, interface e transições.
+
+**4. Construção dos seis mundos**
+
+Desenvolvimento dos ambientes elementais, com personagens próprios e dificuldade progressiva.
+
+**5. Expansão da jogabilidade**
+
+Implementação de novos perigos ambientais, boosts, coleta de energia e aprimoramentos visuais.
+
+**6. Implementação de Grootspectro**
+
+Criação da batalha final, com projéteis, bateria de combate, três segmentos de vida e megarraio arco-íris.
+
+**7. Versão Arcade**
+
+Compilação e distribuição do jogo completo para Windows.
+
+**8. Versão Educativa**
+
+Adição de letras, banco de perguntas, cronômetro, desafios de progressão e ressurreição.
+
+**9. Suporte ao controle de PS4**
+
+Integração do DualShock 4 à versão educativa, permitindo uma experiência mais próxima de um arcade tradicional.
+
+**10. Testes e distribuição**
+
+Validação automatizada, testes manuais e disponibilização das duas versões por meio do GitHub Releases.
+
+---
+
+## 🤝 Desenvolvimento e colaboração
+
+O projeto foi organizado em sete frentes principais:
+
+1. Núcleo do jogo e integração.
+2. Personagens, física e colisões.
+3. Cenários e direção de arte.
+4. Obstáculos e dificuldade.
+5. Coletáveis, energia e boosts.
+6. Interface, efeitos e portais.
+7. Compilação, testes e distribuição.
+
+O desenvolvimento utiliza Git e GitHub para organização das alterações, integração de funcionalidades e acompanhamento da evolução do software.
+
+As novas funcionalidades educativas e o suporte ao controle foram incorporados à base modular, respeitando os sistemas previamente implementados.
+
+---
+
+## 📚 Documentação adicional
+
+Consulte os documentos técnicos do repositório:
+
+- [BUILD.md](docs/BUILD.md) — compilação e ambiente.
+- [TESTING.md](docs/TESTING.md) — testes e validação.
+- [CONTRACTS.md](docs/CONTRACTS.md) — contratos de integração.
+- [INTEGRATION.md](docs/INTEGRATION.md) — arquitetura e integração.
+- [Documentação das entregas](docs/handoffs/) — registros técnicos das frentes de desenvolvimento.
+
+---
+
+## 🎓 Objetivos acadêmicos
+
+O Morph Adventure demonstra a aplicação prática de conhecimentos de Sistemas de Informação, especialmente:
+
+- Programação estruturada em C.
+- Organização modular de software.
+- Lógica computacional.
+- Gerenciamento de estados.
+- Desenvolvimento de interfaces.
+- Física e detecção de colisões.
+- Programação gráfica.
+- Integração de dispositivos de entrada.
+- Testes automatizados.
+- Controle de versões.
+- Trabalho colaborativo.
+
+Na versão Educativa, o jogo também explora a utilização da tecnologia como ferramenta de aprendizagem, incentivando o contato com conceitos de Lógica Proposicional de maneira interativa.
+
+---
+
+## 📄 Situação do projeto
+
+**Arcade v1.0.0:** versão publicada para Windows.
+
+**Educativo v1.0.0:** versão publicada para Windows, incluindo desafios de lógica e suporte ao DualShock 4.
+
+O projeto permanece aberto a ajustes de balanceamento, acessibilidade, interface e novas funcionalidades.
+
+Para relatar problemas ou sugerir melhorias, utilize a seção de [Issues](https://github.com/victorbpalazzin/MorphAdventure/issues) do repositório.
+
+---
+
+### 🪽 Morph Adventure
+
+**Seis mundos. Uma única aventura. Novas formas de aprender.**
+
+*Desenvolvido em C99 com raylib 5.5 — CESAR School, 2026.*
+
+**[Repositório no GitHub](https://github.com/victorbpalazzin/MorphAdventure)**
