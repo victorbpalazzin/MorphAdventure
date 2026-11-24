@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "core/game.h"
 #include "core/viewport.h"
+#include "input/gamepad.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +20,30 @@
 GameModules MorphCreateModules(void);
 #endif
 
+#ifdef MORPH_MODULES_LINKED
+static const int pad_buttons[PAD_BUTTON_COUNT] = {
+    GAMEPAD_BUTTON_RIGHT_FACE_DOWN, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT,
+    GAMEPAD_BUTTON_RIGHT_FACE_LEFT, GAMEPAD_BUTTON_MIDDLE_RIGHT,
+    GAMEPAD_BUTTON_LEFT_FACE_UP, GAMEPAD_BUTTON_LEFT_FACE_DOWN,
+    GAMEPAD_BUTTON_LEFT_FACE_LEFT, GAMEPAD_BUTTON_LEFT_FACE_RIGHT};
+
+static PadSnapshot ReadPad(void)
+{
+    PadSnapshot pad = {0};
+    pad.id = -1;
+    for (int id = 0; id < 4; id++) {
+        if (!IsGamepadAvailable(id)) continue;
+        pad.connected = true;
+        pad.id = id;
+        for (int b = 0; b < PAD_BUTTON_COUNT; b++) pad.down[b] = IsGamepadButtonDown(id, pad_buttons[b]);
+        pad.stick_x = GetGamepadAxisMovement(id, GAMEPAD_AXIS_LEFT_X);
+        pad.stick_y = GetGamepadAxisMovement(id, GAMEPAD_AXIS_LEFT_Y);
+        break;
+    }
+    return pad;
+}
+
+#endif
 static void DrawDiagnostic(const Game *g, GameInput input)
 {
     Color ink = {232, 237, 224, 255}, gold = {238, 207, 143, 255};
@@ -75,6 +100,9 @@ int main(int argc, char **argv)
     Game game;
     bool initialized = GameInit(&game, &modules);
     bool previous_touch = false;
+#ifdef MORPH_MODULES_LINKED
+    PadState pad_state; PadReset(&pad_state);
+#endif
     while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
         GameViewport viewport = ViewportFit(GetScreenWidth(), GetScreenHeight());
         GameInput input = {0};
@@ -87,6 +115,15 @@ int main(int argc, char **argv)
         if (IsKeyPressed(KEY_ENTER)) UiQueueNavigation(0, true);
 #endif
         if (game.state.mode == GAME_INTRO && input.impulse_pressed) input.command = COMMAND_START;
+#ifdef MORPH_MODULES_LINKED
+        if (PadSupported()) {
+            int pad_navigation = 0;
+            bool pad_activate = false;
+            PadActions pad = PadUpdate(&pad_state, ReadPad(), (double)GetFrameTime());
+            PadApply(pad, game.state.mode, &input, &pad_navigation, &pad_activate);
+            if (pad_navigation || pad_activate) UiQueueNavigation(pad_navigation, pad_activate);
+        }
+#endif
         bool touch = GetTouchPointCount() > 0;
         Vector2 point = touch ? GetTouchPosition(0) : GetMousePosition();
         input.pointer_inside = ViewportToLogical(viewport, (GameVec2){point.x, point.y}, &input.pointer);
