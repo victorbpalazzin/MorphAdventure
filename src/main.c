@@ -16,7 +16,29 @@
 #ifdef MORPH_MODULES_LINKED
 #include "ui/ui.h"
 #include "items/items.h"
+#include "audio/audio.h"
 GameModules MorphCreateModules(void);
+
+/* Som: M silencia a qualquer momento; na pausa, 1-3 escolhem o canal e as setas
+ * ajustam. Cliques no painel chegam pela UI (UiTakeAudioRequest). */
+static int audio_selected = 0;
+static void AudioInput(const Game *g)
+{
+    if (IsKeyPressed(KEY_M)) AudioToggleMute();
+    if (g->state.mode == GAME_PAUSED) {
+        if (IsKeyPressed(KEY_ONE)) audio_selected = 0;
+        if (IsKeyPressed(KEY_TWO)) audio_selected = 1;
+        if (IsKeyPressed(KEY_THREE)) audio_selected = 2;
+        if (IsKeyPressed(KEY_LEFT)) AudioAdjust((AudioChannel)audio_selected, -1);
+        if (IsKeyPressed(KEY_RIGHT)) AudioAdjust((AudioChannel)audio_selected, 1);
+    }
+    UiAudioRequest r = UiTakeAudioRequest();
+    if (r.toggle_mute) AudioToggleMute();
+    if (r.channel >= 0 && r.channel < AUDIO_CHANNELS) { audio_selected = r.channel; AudioAdjust((AudioChannel)r.channel, r.delta); }
+    AudioSettings s = AudioGetSettings();
+    UiAudioView view = {AudioGetStats().enabled, {s.volume[0], s.volume[1], s.volume[2]}, s.muted, audio_selected};
+    UiSetAudioView(view);
+}
 #endif
 
 static void DrawDiagnostic(const Game *g, GameInput input)
@@ -71,6 +93,7 @@ int main(int argc, char **argv)
     ItemsSetSeed((uint32_t)time(NULL) ^ (uint32_t)clock() ^
         (uint32_t)(GetTime()*1000000.0) ^ ((uint32_t)GetRandomValue(0,INT_MAX)<<1));
     modules = MorphCreateModules();
+    AudioInit(NULL); /* sem dispositivo ou arquivos: segue em silêncio, com aviso no log */
 #endif
     Game game;
     bool initialized = GameInit(&game, &modules);
@@ -93,6 +116,10 @@ int main(int argc, char **argv)
         input.pointer_pressed = touch ? !previous_touch : IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
         previous_touch = touch;
         GameAdvance(&game, (double)GetFrameTime(), input);
+#ifdef MORPH_MODULES_LINKED
+        AudioInput(&game);
+        AudioFrame(&game.state, UiInspect().focus, (double)GetFrameTime());
+#endif
         BeginTextureMode(target);
         ClearBackground((Color){12, 23, 37, 255});
         if (!game.ready || game.state.mode == GAME_ERROR) DrawDiagnostic(&game, input);
@@ -114,6 +141,9 @@ int main(int argc, char **argv)
     printf("core-shell: initialized=%d ready=%d missing=0x%02x frames=%d\n",
            initialized, game.ready, game.missing_modules, frame);
     GameShutdown(&game);
+#ifdef MORPH_MODULES_LINKED
+    AudioShutdown();
+#endif
     UnloadRenderTexture(target);
     CloseWindow();
     return initialized ? 0 : 1;

@@ -353,3 +353,12 @@ preservam seus layouts. Títulos, narrativa e pontuação são desenhados fora d
 O core chama ui.step em INTRO/WON com tempo de apresentação limitado a 0,1 s por
 quadro. Isso não avança simulação, física, itens, vidas ou boss. Sem foco não avança;
 pausa permanece congelada. Draw é somente leitura. Vitória ainda exige BOSS_DONE.
+
+## Áudio (sem mudança de contrato)
+
+`src/audio/audio_cues.c` (puro, em morph_core) decide efeitos e plano musical a partir de
+eventos reais e de transições do GameState; `src/audio/audio.c` (raylib) toca. A
+composição (`composition.c`) envolve `player.step`, `effects.event` e `obstacles.step`
+apenas para ouvir eventos: nenhum callback altera estado do jogo por causa do áudio, e
+GameState, GameModules e MORPH_CONTRACT_VERSION não mudaram. Falta de dispositivo ou de
+arquivos deixa o jogo em silêncio, nunca em GAME_ERROR. Ver docs/AUDIO.md.

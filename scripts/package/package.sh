@@ -48,4 +48,14 @@ fi
 echo "== Executando a partir da pasta limpa"
 cmake -DEXE="$PKG_DIR/morph-core-shell" -DWORK_DIR="$CLEAN/smoke" "-DLAUNCHER=$LAUNCHER" \
       -P "$ROOT/tests/smoke/run_shell_smoke.cmake"
+if [ -x "$PKG_DIR/morph-adventure" ]; then
+    echo "== Jogo e áudio a partir da pasta limpa"
+    for f in assets/audio/music/menu.ogg assets/audio/music/boss_3.ogg assets/audio/sfx/beam.ogg assets/audio/sfx/collect.ogg CREDITOS.txt; do
+        [ -f "$PKG_DIR/$f" ] || { echo "ERRO: pacote sem $f" >&2; exit 1; }
+    done
+    LOG="$CLEAN/jogo.log"
+    ( cd "$CLEAN" && ${LAUNCHER:+xvfb-run -a} "$PKG_DIR/morph-adventure" --smoke-frames 90 > "$LOG" 2>&1 ) || { cat "$LOG"; exit 1; }
+    grep -E "AUDIO: Audio:|Audio desativado" "$LOG" || true
+    if grep -q "pasta assets/audio nao encontrada" "$LOG"; then echo "ERRO: o jogo extraído não achou o áudio" >&2; exit 1; fi
+fi
 echo "OK: $ZIP abre fora da pasta de desenvolvimento neste sistema ($(uname -sm))."
