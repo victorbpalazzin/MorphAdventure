@@ -3,3 +3,7 @@ build-*/
 out/
 *.png
 !assets/**/*.png
+
+# Ferramentas de áudio (Python)
+__pycache__/
+*.pyc
