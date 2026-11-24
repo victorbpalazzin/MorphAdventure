@@ -1,92 +1,64 @@
 # 🪽 Morph Adventure
 
-### Uma jornada através dos elementos e da lógica.
+### Seis mundos. Uma única aventura.
 
-**Morph Adventure** é um jogo de aventura com rolagem lateral, desenvolvido integralmente em **C99 com raylib 5.5**, no qual o jogador precisa explorar seis mundos, enfrentar obstáculos, coletar recursos, atravessar portais e derrotar uma ameaça que coloca em risco o equilíbrio dos elementos.
+**Morph Adventure** é um jogo de aventura com rolagem lateral, desenvolvido em **C99 com raylib 5.5** por estudantes de Sistemas de Informação da **CESAR School**.
 
-O projeto foi desenvolvido por estudantes de **Sistemas de Informação da CESAR School**, como parte de atividades acadêmicas envolvendo programação, lógica, desenvolvimento de jogos, engenharia de software e trabalho colaborativo.
+Inspirado inicialmente na mecânica de voo de *Flappy Bird*, o projeto evoluiu para uma aventura com seis mundos elementais, personagens próprios, obstáculos dinâmicos, coleta de energia, poderes especiais e uma batalha final contra Grootspectro, o Titã Espectral da Floresta.
 
-Originalmente concebido como um protótipo inspirado em *Flappy Bird*, desenvolvido em HTML, o jogo passou por uma reconstrução completa em C, evoluindo para uma aventura com personagens próprios, cenários dinâmicos, mecânicas progressivas e uma versão educativa voltada à aprendizagem de Lógica Proposicional.
+O jogo possui duas edições: **Arcade**, voltada à aventura e aos reflexos, e **Educativa**, que incorpora desafios de Lógica Proposicional à progressão.
 
-Atualmente, o projeto disponibiliza duas versões independentes:
-
-- **Arcade:** experiência tradicional de aventura, exploração e coleta de energia.
-- **Educativa:** incorpora letras coletáveis, perguntas de lógica com tempo limitado, segunda chance e suporte ao controle DualShock 4.
-
-As duas versões compartilham a mesma base de código e são configuradas durante a compilação.
+A versão mais recente do Arcade, **v1.1.0**, também conta com trilha sonora original, efeitos sonoros e suporte ao controle DualShock 4.
 
 ---
 
-## 📥 Download e versões disponíveis
+## 🎮 Versões disponíveis
 
-As versões para Windows podem ser baixadas diretamente pela página de Releases do projeto:
+| Versão | Características | Status |
+|---|---|---|
+| Arcade v1.1.0 | Seis mundos, energia, Grootspectro, áudio e controle de PS4 | Publicada |
+| Educativo v1.0.0 | Letras, desafios de lógica, cronômetro e segunda chance | Publicada |
+| Arcade v1.0.0 | Primeira edição Arcade completa | Versão anterior |
 
-**[Acessar todas as Releases](https://github.com/victorbpalazzin/MorphAdventure/releases)**
+### 📥 Downloads
 
-### 🎮 Versão Arcade — v1.0.0
+**[Baixar Arcade v1.1.0 — Áudio + DualShock 4](https://github.com/victorbpalazzin/MorphAdventure/releases/tag/v1.1.0)**
 
-**[Baixar Morph Adventure Arcade](https://github.com/victorbpalazzin/MorphAdventure/releases/download/v1.0.0/MorphAdventure-Arcade-v1.0.0-Windows-x64.zip)**
+Edição Arcade atualizada, com músicas originais, efeitos sonoros, controles de volume e compatibilidade com DualShock 4 conectado por USB.
 
-Esta versão apresenta a experiência original, com:
+**[Baixar Educativo v1.0.0](https://github.com/victorbpalazzin/MorphAdventure/releases/tag/educativo-v1.0.0)**
 
-- Seis mundos exploráveis.
-- Coleta de fragmentos de energia.
-- Obstáculos e perigos ambientais.
-- Sistema de vidas e pontuação.
-- Boosts temporários.
-- Portais de transição.
-- Batalha final contra Grootspectro.
+Edição voltada ao aprendizado de Lógica Proposicional, com coleta de letras, perguntas de múltipla escolha e sistema de segunda chance.
 
-**Tag:** `v1.0.0`
+A edição Educativa v1.0.0 é uma publicação independente. A integração posterior de áudio educativo está sendo desenvolvida separadamente e não deve ser confundida com os recursos já distribuídos nessa versão.
 
-**Branch de referência:** `main`
-
-### 🧠 Versão Educativa — v1.0.0
-
-**[Baixar Morph Adventure Educativo](https://github.com/victorbpalazzin/MorphAdventure/releases/download/educativo-v1.0.0/MorphAdventure-Educativo-v1.0.0-Windows-x64.zip)**
-
-Esta versão preserva a aventura original e acrescenta:
-
-- Letras colecionáveis no lugar dos fragmentos de progressão.
-- Perguntas de Lógica Proposicional.
-- Cronômetro de 12 segundos.
-- Desbloqueio de portais mediante respostas corretas.
-- Segunda chance ao perder todas as vidas.
-- Suporte ao controle de PlayStation 4 (DualShock 4).
-
-**Tag:** `educativo-v1.0.0`
-
-**Branch de referência:** `feature/modo-educativo`
+**[Ver todas as Releases](https://github.com/victorbpalazzin/MorphAdventure/releases)**
 
 ### Como instalar
 
-1. Acesse uma das Releases.
-2. Baixe o arquivo ZIP correspondente.
-3. Extraia todo o conteúdo para uma pasta.
-4. Abra `entrega-arcade` ou `entrega-educativo`, conforme a versão.
+1. Acesse a Release desejada.
+2. Baixe o arquivo ZIP disponível em **Assets**.
+3. Extraia todo o conteúdo.
+4. Abra a pasta `entrega-arcade` ou `entrega-educativo`.
 5. Execute `morph-adventure.exe`.
 
-O jogo funciona localmente e não exige conexão com a internet durante a execução.
+Na versão Arcade v1.1.0, mantenha a pasta `assets/audio` junto do executável. Ela contém todas as músicas e os efeitos necessários.
 
-Não é necessário instalar CMake, compiladores ou raylib para utilizar os executáveis já distribuídos.
+Os pacotes prontos não exigem instalação de CMake, GCC ou raylib.
 
-**Compatibilidade principal:** Windows x64, com suporte gráfico a OpenGL 3.3.
+**Plataforma principal:** Windows x64.
 
 ---
 
-## 🌌 História e objetivo
+## 🌌 História
 
-Os seis mundos de Morph Adventure estão ameaçados por uma força sombria conhecida como **Grootspectro, o Titã Espectral da Floresta**.
+Uma força sombria conhecida como **Grootspectro, o Titã Espectral da Floresta**, ameaça destruir o equilíbrio entre os mundos.
 
-Essa criatura busca destruir o equilíbrio entre os elementos, colocando em risco diferentes ambientes e seus habitantes.
+Diante dessa ameaça, seis personagens precisam enfrentar ambientes hostis, superar obstáculos e atravessar portais para alcançar o confronto final.
 
-Para enfrentar a ameaça, os protagonistas precisam atravessar seis mundos elementais, superar perigos, reunir recursos e chegar ao confronto final.
+Cada mundo apresenta condições próprias de jogabilidade, exigindo adaptação e precisão.
 
-Cada mundo apresenta um personagem, uma identidade visual e desafios específicos.
-
-Ao longo da jornada, a dificuldade aumenta progressivamente, exigindo mais precisão, reflexos e domínio das mecânicas.
-
-A aventura termina somente quando o jogador derrota Grootspectro.
+A aventura começa no Ar e segue por Água, Floresta, Gelo, Terra e Fogo, até a batalha contra Grootspectro.
 
 ---
 
@@ -94,420 +66,268 @@ A aventura termina somente quando o jogador derrota Grootspectro.
 
 | Mundo | Personagem | Meta de coleta | Principais desafios |
 |---|---|---:|---|
-| 🌤️ Ar | Passarinho | 4 | Tempestades, rajadas de vento e redemoinhos |
-| 🌊 Água | Peixinho | 6 | Corais, rochas, correntes e águas-vivas |
+| 🌤️ Ar | Passarinho | 4 | Tempestades, rajadas e redemoinhos |
+| 🌊 Água | Peixinho | 6 | Corais, correntes e águas-vivas |
 | 🌿 Floresta | Borboleta | 8 | Galhos e cipós espinhosos |
-| ❄️ Gelo | Pinguim | 10 | Gelo móvel, nevascas e estilhaços |
+| ❄️ Gelo | Pinguim | 10 | Nevascas, gelo móvel e estilhaços |
 | 🏜️ Terra | Raposa voadora | 12 | Rochas, poeira e redemoinhos de areia |
-| 🔥 Fogo | Dragãozinho | 16 | Rochas vulcânicas, erupções e bolas de fogo |
+| 🔥 Fogo | Dragãozinho | 16 | Erupções, rochas vulcânicas e bolas de fogo |
 
-As metas de coleta são compartilhadas pelas duas versões.
+No Arcade, as metas representam fragmentos de energia necessários para avançar.
 
-No **Arcade**, representam a quantidade de fragmentos de energia necessários.
+Na edição Educativa, as metas de progressão são representadas por letras colecionáveis.
 
-No **Educativo**, representam a quantidade de letras que devem ser coletadas antes do desafio de lógica.
+### Progressão
 
-### Progressão e dificuldade
+O jogador deve evitar colisões, coletar os recursos necessários e completar a progressão do mundo para alcançar o portal.
 
-A dificuldade aumenta conforme o jogador avança pelos mundos, com alterações na velocidade, nos obstáculos e nos perigos ambientais.
+Conforme a aventura avança, os obstáculos se tornam mais exigentes e novos perigos ambientais são apresentados.
 
-Cada mundo também possui:
+Cada mundo possui cenários, personagens, animações e efeitos próprios.
 
-- Cenário com identidade visual própria.
-- Personagem temático.
-- Camadas de parallax.
-- Obstáculos com movimentação e padrões específicos.
-- Perigos especiais com avisos visuais.
-- Portal de transição personalizado.
-
-Os cenários e personagens são renderizados por código com recursos gráficos da raylib, sem depender de imagens externas durante a execução.
+Os ambientes utilizam camadas de parallax e elementos gráficos produzidos por código.
 
 ---
 
-## 🕹️ Mecânicas principais
+## 🕹️ Jogabilidade
 
-### Movimento e física
+### Movimento
 
-O personagem possui movimentação vertical controlada por impulsos.
+A jogabilidade utiliza uma mecânica de voo baseada em impulsos verticais.
 
-A gravidade atua continuamente, exigindo que o jogador utilize os comandos de voo para permanecer em uma posição segura.
+O personagem é afetado pela gravidade, exigindo comandos frequentes para manter sua posição e atravessar espaços entre os obstáculos.
 
-Os obstáculos se deslocam horizontalmente, produzindo a sensação de progressão constante pelos cenários.
-
-A simulação utiliza passos fixos de **1/60 de segundo**, garantindo consistência na atualização das regras do jogo.
+O jogador também deve reagir a perigos ambientais que possuem movimentos e avisos próprios.
 
 ### Sistema de vidas
 
-Cada aventura começa com **três vidas**.
+A aventura começa com **três vidas**.
 
-Ao colidir com obstáculos ou perigos ambientais, o jogador pode perder uma vida, respeitando os efeitos de proteção temporária.
+Colisões e danos podem reduzir esse total, enquanto determinados coletáveis oferecem recuperação.
 
-Existem corações coletáveis que concedem uma vida adicional nos mundos:
+Há corações extras nos mundos Água, Gelo e Fogo, disponíveis uma vez por mundo.
 
-- Água.
-- Gelo.
-- Fogo.
+As vidas restantes são preservadas durante as transições, inclusive na entrada da batalha final.
 
-Cada um desses mundos pode oferecer esse benefício uma vez por aventura.
+### Energia e portais
 
-A passagem entre mundos não restaura automaticamente as vidas.
+No Arcade, fragmentos de energia são coletados para completar a bateria do mundo.
 
-### Coleta de recursos
+Quando a meta de progressão é atingida, novos obstáculos deixam de surgir, permitindo que o jogador alcance o portal.
 
-Na versão Arcade, o jogador reúne fragmentos de energia para completar a meta necessária à progressão.
+Fragmentos perdidos podem reaparecer, evitando que uma coleta não realizada impeça a conclusão da fase.
 
-Os fragmentos:
+### Boosts
 
-- Possuem identificação individual.
-- Podem ser coletados por colisão.
-- Contribuem para a pontuação.
-- Alimentam o progresso do mundo.
-- Podem reaparecer caso sejam perdidos.
-- São afetados pelo boost de magnetismo.
+O jogo possui cinco poderes especiais:
 
-Quando a meta é alcançada, o percurso chega a 100% e o sistema prepara a transição.
-
-Na versão Educativa, essa mesma mecânica é preservada, substituindo visualmente os fragmentos por letras.
-
-### Portais
-
-Os portais conectam os seis mundos.
-
-Na versão Arcade, são liberados conforme as condições originais de progressão.
-
-Na versão Educativa, o jogador também precisa responder corretamente a um desafio de lógica antes de atravessar.
-
-As transições preservam as animações e os efeitos visuais do jogo.
-
----
-
-## ⚡ Sistema de boosts
-
-Morph Adventure possui cinco tipos de boosts:
-
-| Boost | Funcionamento | Duração |
+| Boost | Efeito | Duração |
 |---|---|---|
-| 🛡️ Escudo | Absorve um impacto | Até ser consumido |
-| 🧲 Ímã | Atrai coletáveis próximos | 7 segundos |
+| 🛡️ Escudo | Protege contra um impacto | Até ser consumido |
+| 🧲 Ímã | Atrai fragmentos próximos | 7 segundos |
 | 👻 Intangibilidade | Permite atravessar perigos sem sofrer dano | 7 segundos |
-| ⏳ Slow motion | Reduz a velocidade do mundo para 68% | 4 segundos |
-| ✨ Pontos x2 | Duplica as recompensas de pontuação | 7 segundos |
+| ⏳ Slow motion | Reduz o ritmo do mundo para 68% | 4 segundos |
+| ✨ Pontos x2 | Duplica a pontuação recebida | 7 segundos |
 
-O jogador pode manter até dois tipos de boosts ativos simultaneamente.
+O jogador pode manter até dois tipos de boosts simultaneamente. A coleta de um terceiro tipo substitui o mais antigo.
 
-Ao coletar um terceiro tipo, o sistema substitui o mais antigo.
+### Pontuação
 
-Coletar novamente um boost temporizado renova sua duração.
+| Ação | Pontuação |
+|---|---:|
+| Ultrapassar obstáculo | 10 pontos |
+| Coletar fragmento | 35 pontos |
+| Atravessar portal | 100 pontos |
 
-O sistema é compartilhado pelas duas versões do jogo.
-
----
-
-## ⭐ Sistema de pontuação
-
-A pontuação recompensa ações realizadas ao longo da aventura.
-
-| Ação | Pontos normais | Com boost x2 |
-|---|---:|---:|
-| Ultrapassar obstáculo | 10 | 20 |
-| Coletar recurso | 35 | 70 |
-| Atravessar portal | 100 | 200 |
-
-O boost de pontos x2 afeta apenas as recompensas obtidas enquanto estiver ativo.
-
-A pontuação é preservada durante a passagem entre mundos.
+O boost de pontos x2 duplica as recompensas recebidas durante seu efeito.
 
 ---
 
-## 🧠 Modo Educativo — Lógica Proposicional
+## 🌳 Batalha final — Grootspectro
 
-A versão educativa foi desenvolvida para integrar conceitos introdutórios de Lógica Proposicional à experiência de jogo.
+Ao concluir o mundo Fogo, o jogador enfrenta **Grootspectro, o Titã Espectral da Floresta**.
 
-O objetivo é transformar a progressão pelos mundos em uma atividade que combine raciocínio, atenção e entretenimento.
+A batalha possui três segmentos de vida e ataques que aumentam de intensidade conforme o chefe é atingido.
 
-Essa modalidade foi pensada especialmente para apresentações acadêmicas e visitantes que podem não possuir conhecimento prévio da disciplina.
+### Mecânicas do combate
 
-### Letras coletáveis
+- Projéteis espectrais e avisos de ataque.
+- Fragmentos multicoloridos de energia.
+- Bateria de combate independente da progressão dos mundos.
+- Megarraio arco-íris.
+- Três fases de dificuldade.
+- Animação de derrota do chefe e encerramento narrativo.
 
-Os fragmentos de progressão são substituídos visualmente por letras do alfabeto.
+O jogador precisa coletar **quatro fragmentos de combate** para carregar um disparo.
 
-O jogador deve coletar a quantidade correspondente ao mundo atual.
+Cada megarraio completo remove um segmento de vida de Grootspectro. São necessários três disparos para derrotá-lo.
 
-Por exemplo, no mundo Água, é necessário reunir seis letras.
-
-O HUD apresenta o progresso utilizando a indicação:
-
-`LETRAS: 3/6`
-
-As letras não precisam formar palavras ou anagramas.
-
-A mecânica utiliza o sistema de coleta já existente, preservando colisões, pontuação, reaparecimento, boosts e progressão.
-
-### Banco de perguntas
-
-O projeto possui um banco com **41 perguntas de Lógica Proposicional**, organizado em `src/edu/questions.c`.
-
-Cada questão apresenta:
-
-- Enunciado.
-- Quatro alternativas.
-- Uma única resposta correta.
-- Identificação do conteúdo.
-- Explicação pedagógica breve.
-
-Os temas incluem:
-
-1. Identificação de proposições.
-2. Valores lógicos: verdadeiro e falso.
-3. Negação.
-4. Conjunção (E).
-5. Disjunção inclusiva (OU).
-6. Condicional (SE... ENTÃO).
-7. Tautologia, contradição e contingência.
-
-As perguntas são selecionadas por um sistema de embaralhamento que evita a repetição imediata da mesma questão.
-
-### Exemplo de pergunta
-
-**Qual destas frases pode ser considerada uma proposição lógica?**
-
-A) Feche a porta!
-
-B) Que horas são?
-
-C) O número 2 é par.
-
-D) Bom dia!
-
-**Resposta correta:** C.
-
-**Explicação:** uma proposição é uma afirmação que pode ser classificada como verdadeira ou falsa.
-
-### Cronômetro de 12 segundos
-
-Toda pergunta possui um limite de **12 segundos**.
-
-O tempo restante é apresentado na interface por meio de contador e indicadores visuais.
-
-O cronômetro:
-
-- Começa em 12 segundos para cada pergunta.
-- Diminui durante a escolha da alternativa.
-- Interrompe a contagem quando a resposta é registrada.
-- Não continua diminuindo durante o feedback.
-- É reiniciado quando uma nova pergunta aparece.
-- É suspenso durante pausas e perda de foco da janela.
-
-Enquanto o jogador responde, a simulação da aventura permanece congelada.
-
-Isso evita colisões, movimentação de obstáculos ou consumo de boosts durante o desafio.
-
-### Perguntas para atravessar portais
-
-Após completar a coleta de letras, o jogador precisa responder corretamente a uma pergunta.
-
-**Se acertar:**
-
-- Recebe o feedback de acerto.
-- Desbloqueia o portal.
-- Continua a aventura.
-
-**Se errar:**
-
-- Recebe a resposta correta e uma explicação.
-- Mantém as letras coletadas.
-- Não perde vidas.
-- Recebe outra pergunta com 12 segundos.
-
-**Se o tempo acabar:**
-
-- A tentativa é encerrada.
-- O jogo informa que o tempo se esgotou.
-- Apresenta a explicação.
-- Oferece outra pergunta com 12 segundos.
-
-O jogador pode realizar quantas tentativas forem necessárias para avançar.
-
-**O portal somente é liberado após uma resposta correta dentro do prazo.**
-
-No mundo Fogo, o desafio libera o acesso ao confronto final contra Grootspectro.
-
-### Segunda chance — Ressurreição
-
-A versão educativa também possui um sistema de segunda chance.
-
-Quando o jogador perde todas as vidas pela primeira vez, uma pergunta especial substitui temporariamente a derrota.
-
-O jogador possui **12 segundos e uma única tentativa** para responder corretamente.
-
-**Se acertar:**
-
-- Recupera exatamente uma vida.
-- Continua no mundo atual.
-- Mantém a pontuação.
-- Preserva as letras já coletadas.
-- Recebe proteção temporária ao retornar.
-- Consome definitivamente a segunda chance.
-
-**Se errar ou deixar o tempo acabar:**
-
-- Recebe o feedback da pergunta.
-- Não recupera vidas.
-- É encaminhado à tela de derrota.
-
-A ressurreição pode acontecer somente uma vez por aventura, inclusive durante o confronto contra o chefe final.
-
-A disponibilidade é restaurada apenas quando uma nova aventura começa.
+Na versão Arcade v1.1.0, a batalha também possui efeitos sonoros exclusivos e uma trilha dinâmica que evolui conforme as fases do chefe.
 
 ---
 
-## 🎮 Controles do jogo
+## 🎵 Sistema de áudio — novidade da v1.1.0
+
+A versão Arcade v1.1.0 introduz um sistema de áudio completo, integrado à raylib 5.5.
+
+As músicas e os efeitos foram desenvolvidos especificamente para Morph Adventure, seguindo uma identidade sonora que acompanha a progressão da aventura.
+
+### Trilhas sonoras
+
+| Ambiente | Identidade musical |
+|---|---|
+| Menu inicial | Tema de abertura e apresentação do motivo musical |
+| Ar | Flautas, harpa e texturas leves |
+| Água | Piano elétrico, sons fluidos e ambientação submersa |
+| Floresta | Kalimba, instrumentos de madeira e atmosfera natural |
+| Gelo | Sinos, piano e ambientação cristalina |
+| Terra | Tambores, cordas e elementos épicos |
+| Fogo | Percussão intensa, sintetizadores e sensação de urgência |
+| Grootspectro | Música de combate com três camadas progressivas |
+| Vitória | Tema de conclusão da aventura |
+| Derrota | Tema breve de encerramento e recomeço |
+
+As composições compartilham motivos musicais que reaparecem em diferentes ambientes, contribuindo para a continuidade da experiência.
+
+### Efeitos sonoros
+
+O jogo também possui sons específicos para ações e acontecimentos como:
+
+- Impulsos de voo.
+- Coleta de energia.
+- Bateria completa.
+- Colisões e perda de vida.
+- Coleta de corações.
+- Ativação dos cinco boosts.
+- Abertura e travessia de portais.
+- Surgimento de obstáculos e perigos ambientais.
+- Aparição e ataques de Grootspectro.
+- Carregamento e disparo do megarraio.
+- Navegação, confirmação e pausa nos menus.
+
+Os efeitos são acionados pelos eventos reais do jogo, evitando reproduções repetitivas sem necessidade.
+
+### Áudio dinâmico
+
+O sistema implementa transições graduais entre as músicas, evitando cortes bruscos nas mudanças de mundo.
+
+Durante o confronto com Grootspectro, novas camadas musicais são incorporadas conforme a batalha avança.
+
+A pausa também interrompe temporariamente a reprodução, que continua quando o jogador retoma a partida.
+
+### Configurações de volume
+
+É possível ajustar separadamente:
+
+- Volume geral.
+- Volume das músicas.
+- Volume dos efeitos.
+
+O jogador também pode silenciar completamente o jogo.
+
+As configurações são armazenadas no arquivo `morph-audio.cfg`, ao lado do executável, quando a pasta permite gravação.
+
+A ausência de um dispositivo de áudio ou dos arquivos musicais não impede a execução do jogo, que pode continuar em silêncio.
+
+### Arquivos e documentação
+
+O sistema está organizado principalmente em:
+
+- `src/audio/` — reprodução, controle de volume e gerenciamento de efeitos.
+- `assets/audio/music/` — músicas.
+- `assets/audio/sfx/` — efeitos sonoros.
+- `tools/audio/` — ferramentas de criação e processamento.
+- `docs/AUDIO.md` — documentação técnica do sistema.
+- `assets/audio/CREDITOS.txt` — créditos e origem dos recursos.
+
+**[Consultar a documentação completa de áudio](docs/AUDIO.md)**
+
+---
+
+## 🕹️ Controles
 
 ### Teclado e mouse
 
 | Ação | Comando |
 |---|---|
-| Impulsionar personagem | Espaço, W, seta para cima ou clique na área de jogo |
-| Disparar megarraio | J, durante a batalha final |
-| Pausar ou continuar | P |
-| Navegar entre botões | Tab / Shift + Tab |
-| Confirmar botão selecionado | Enter |
+| Voar | Espaço, W, ↑ ou clique na área de jogo |
+| Megarraio | J |
+| Pausar / continuar | P |
+| Navegar pelos menus | Tab / Shift + Tab |
+| Confirmar opção | Enter |
+| Silenciar / ativar áudio | M |
+| Selecionar canal de áudio na pausa | 1, 2 ou 3 |
+| Ajustar volume na pausa | ← / → ou botões da interface |
 | Fechar jogo | Esc |
-| Responder perguntas | Teclas 1–4 ou A–D |
-| Navegar pelas alternativas | Setas para cima e para baixo |
-| Confirmar alternativa selecionada | Enter ou Espaço |
-| Ligar ou desligar o som | M |
-| Ajustar volumes (na pausa) | 1, 2 ou 3 escolhem Geral, Música ou Efeitos; setas ← → ajustam; botões − e + com o mouse |
 
-Teclado e mouse permanecem disponíveis tanto no Arcade quanto no Educativo.
+### DualShock 4 — PlayStation 4
 
-### Controle de PlayStation 4 — DualShock 4
+A partir da **Arcade v1.1.0**, o jogo também oferece suporte ao controle DualShock 4.
 
-A versão Educativa possui suporte nativo ao controle DualShock 4, conectado por cabo USB ao Windows.
-
-O controle utiliza as funções de gamepad da raylib 5.5, sem exigir obrigatoriamente softwares adicionais.
-
-| Botão do PS4 | Função |
+| Botão | Função |
 |---|---|
-| X (cruz) | Impulsionar personagem / confirmar opções |
-| Quadrado | Disparar megarraio contra Grootspectro |
-| OPTIONS | Pausar ou retomar |
-| Direcional | Navegar pelos menus e perguntas |
-| Analógico esquerdo | Navegar pelos menus e perguntas |
-| Círculo | Voltar ou cancelar quando a tela permitir |
+| X (cruz) | Voar e confirmar opções |
+| Quadrado | Disparar megarraio |
+| OPTIONS | Pausar e continuar |
+| Direcional | Navegar pelos menus |
+| Analógico esquerdo | Navegar pelos menus |
+| Círculo | Voltar ou cancelar quando permitido |
 
-O sistema identifica conexão e desconexão do dispositivo durante a execução.
+O suporte utiliza os recursos de gamepad da raylib, com detecção de conexão e desconexão durante a execução.
 
-Também são utilizados mecanismos para evitar:
+A utilização por cabo USB foi validada no Windows. Outros controles reconhecidos pela raylib podem funcionar, mas não fazem parte da validação específica desta Release.
 
-- Comandos involuntários ao conectar o controle.
-- Repetições excessivas de navegação.
-- Impulsos acidentais após confirmar perguntas.
-- Conflitos entre ações de menus e ações do personagem.
-
-**Importante:** na implementação atual, o suporte ao controle está ativado somente quando `MORPH_EDUCATIONAL=ON`. A versão Arcade distribuída originalmente utiliza teclado e mouse.
-
-### Testar o controle
-
-Na compilação educativa, o projeto disponibiliza uma tela de diagnóstico para verificar o reconhecimento do controle.
-
-Execute:
-
-```bash
-./build-educativo/morph-adventure.exe --gamepad-test
-```
-
-Essa tela apresenta o nome do dispositivo conectado, o estado dos botões e os valores do analógico esquerdo.
-
-O suporte prioriza o DualShock 4, mas outros controles compatíveis reconhecidos pela raylib também podem funcionar.
+**Atenção ao áudio do Windows:** ao conectar um DualShock 4 por USB, o sistema pode selecionar automaticamente o controle como dispositivo de saída sonora. Caso o jogo fique sem som, selecione os alto-falantes ou fones desejados nas configurações de áudio do Windows.
 
 ---
 
-## 🌳 Grootspectro — Batalha final
+## 🧠 Versão Educativa
 
-Após atravessar os seis mundos, o jogador enfrenta **Grootspectro, o Titã Espectral da Floresta**.
+Além da experiência Arcade, Morph Adventure possui uma edição desenvolvida para o aprendizado introdutório de Lógica Proposicional.
 
-O confronto apresenta um sistema próprio de combate.
+Essa versão substitui os fragmentos de progressão por letras e adiciona desafios para permitir a passagem pelos portais.
 
-### Mecânicas
+### Funcionalidades
 
-- Três segmentos de vida do chefe.
-- Projéteis espectrais.
-- Ataques com dificuldade progressiva.
-- Bateria especial de combate.
-- Fragmentos multicoloridos de energia.
-- Megarraio arco-íris.
-- Animação de derrota e tela de vitória.
+- Coleta de letras do alfabeto.
+- Banco com 41 perguntas de lógica.
+- Quatro alternativas por pergunta.
+- Cronômetro de 12 segundos.
+- Feedback de acertos e erros.
+- Novas perguntas após erro ou tempo esgotado nos portais.
+- Segunda chance ao perder todas as vidas.
+- Recuperação de uma vida após acerto no desafio de ressurreição.
+- Suporte ao DualShock 4.
 
-O jogador precisa coletar **quatro fragmentos especiais** para carregar um disparo do megarraio.
+O banco de questões abrange proposições, valores lógicos, negação, conjunção, disjunção, condicional e classificação de expressões lógicas.
 
-Cada disparo completo remove um segmento de vida do chefe.
+A versão Educativa mantém a aventura pelos seis mundos e o confronto final contra Grootspectro.
 
-São necessários três disparos bem-sucedidos para derrotá-lo.
-
-Durante o megarraio, o personagem assume uma condição especial de combate e dissipa os ataques presentes.
-
-### Funcionamento nas duas versões
-
-A batalha final utiliza a mesma mecânica no Arcade e no Educativo.
-
-Mesmo na versão Educativa, os fragmentos da bateria de combate **continuam sendo energia, não letras**.
-
-A diferença é que o jogador pode utilizar sua segunda chance durante o confronto, caso ainda não a tenha consumido.
-
-A vitória só é apresentada após a derrota completa de Grootspectro e a conclusão de sua animação.
-
----
-
-## 🎵 Trilha sonora e efeitos
-
-O Morph Adventure tem trilha e efeitos **originais**, compostos e sintetizados para o jogo, presentes nas versões Arcade e Educativa.
-
-| Momento | Música |
-|---|---|
-| Menu | Tema de abertura em Ré maior que apresenta o **motivo de Morph** |
-| Ar | Flauta, harpa e pads aéreos (Sol lídio) |
-| Água | Piano elétrico líquido, sub-grave e voz etérea (Mi dórico) |
-| Floresta | Kalimba, pizzicato e madeiras (Lá eólio) |
-| Gelo | Sinos de vidro, piano esparso e reverb cristalino (Si menor) |
-| Terra | Tambores, violão e trompas híbridas (Ré dórico) |
-| Fogo | Percussão intensa, reese, cordas e metais (Dó menor) |
-| Grootspectro | Batalha adaptativa em **três camadas** que crescem a cada fase |
-| Vitória e derrota | Resolução do motivo e um tema breve para tentar de novo |
-
-O motivo de Morph reaparece transformado em todos os mundos, criando a sensação de uma única jornada.
-
-Mais de quarenta efeitos acompanham voo, coleta (cada coleta sobe uma nota até a bateria encher), boosts, portais, perigos de cada mundo, interface e a batalha final, incluindo a sequência do **megarraio arco-íris** sincronizada com a animação.
-
-A música faz transições suaves entre mundos, congela na pausa e o volume pode ser ajustado sem reiniciar a partida. Todo o áudio é gerado por código no próprio repositório (`tools/audio/`). Detalhes em [AUDIO.md](docs/AUDIO.md).
+**Importante:** a versão publicada `educativo-v1.0.0` é independente do Arcade v1.1.0. Suas funcionalidades são mantidas em branch e Release próprias, e as novidades do áudio Arcade não devem ser consideradas automaticamente presentes no pacote educativo já lançado.
 
 ---
 
 ## 🛠️ Tecnologias utilizadas
 
-| Tecnologia | Aplicação |
+| Tecnologia | Utilização |
 |---|---|
-| C99 | Linguagem principal do jogo |
-| raylib 5.5 | Renderização, janela, teclado, mouse, gamepads e áudio |
-| Python 3 + numpy + scipy | Composição e síntese do áudio original (ferramentas em `tools/audio/`) |
-| FFmpeg / libvorbis | Codificação Ogg Vorbis e medição de loudness do áudio |
-| CMake | Configuração do projeto |
-| Ninja | Automação da compilação |
-| GCC / MSYS2 UCRT64 | Compilação para Windows |
-| CTest | Execução dos testes automatizados |
+| C99 | Implementação do jogo |
+| raylib 5.5 | Gráficos, entrada e reprodução de áudio |
+| CMake | Configuração da compilação |
+| Ninja | Sistema de build |
+| GCC / MSYS2 UCRT64 | Compilação no Windows |
+| CTest | Testes automatizados |
+| Python, NumPy e SciPy | Geração das músicas e dos efeitos |
+| FFmpeg / libvorbis | Codificação e processamento de áudio |
 | Git | Controle de versões |
-| GitHub | Hospedagem, colaboração e Releases |
-| VS Code | Desenvolvimento e manutenção |
+| GitHub | Repositório e distribuição |
+| VS Code | Ambiente de desenvolvimento |
 
-O jogo executável foi implementado nativamente em C, sem depender de HTML, CSS ou JavaScript durante sua execução.
-
-O arquivo HTML original foi mantido no repositório como parte do histórico do protótipo.
+O executável utiliza C99 e raylib. Python e as bibliotecas de síntese são ferramentas utilizadas na produção dos recursos sonoros, não sendo necessários para jogar as versões distribuídas.
 
 ---
 
-## 🧩 Arquitetura e organização
-
-O projeto utiliza uma estrutura modular, com responsabilidades distribuídas entre os componentes.
+## 🧩 Estrutura do repositório
 
 ```text
 MorphAdventure/
@@ -518,44 +338,23 @@ MorphAdventure/
 │
 ├── src/
 │   ├── main.c
-│   │
 │   ├── core/
-│   │   ├── game.c
-│   │   ├── game.h
-│   │   ├── game_types.h
-│   │   ├── composition.c
-│   │   └── viewport.c
-│   │
 │   ├── player/
-│   │   └── Personagens, física e colisões
-│   │
 │   ├── worlds/
-│   │   └── Cenários e parallax
-│   │
 │   ├── obstacles/
-│   │   └── Obstáculos e perigos ambientais
-│   │
 │   ├── items/
-│   │   └── Coletáveis, energia e boosts
-│   │
-│   ├── ui/
-│   │   └── HUD, menus e perguntas
-│   │
 │   ├── effects/
-│   │   └── Portais, partículas e transições
-│   │
+│   ├── ui/
 │   ├── boss/
-│   │   └── Grootspectro e regras de combate
-│   │
-│   ├── edu/
-│   │   ├── questions.c
-│   │   ├── questions.h
-│   │   ├── quiz.c
-│   │   └── quiz.h
-│   │
-│   └── input/
-│       ├── gamepad.c
-│       └── gamepad.h
+│   ├── input/
+│   └── audio/
+│
+├── assets/
+│   └── audio/
+│       ├── music/
+│       ├── sfx/
+│       ├── manifest.json
+│       └── CREDITOS.txt
 │
 ├── tests/
 │   ├── core/
@@ -565,82 +364,68 @@ MorphAdventure/
 │   ├── items/
 │   ├── ui/
 │   ├── boss/
-│   ├── edu/
-│   └── input/
+│   ├── input/
+│   └── audio/
 │
-├── cmake/
-│   └── Configuração e empacotamento
+├── tools/
+│   └── audio/
 │
 ├── docs/
-│   └── Contratos e documentação técnica
+│   ├── BUILD.md
+│   ├── TESTING.md
+│   ├── CONTRACTS.md
+│   ├── INTEGRATION.md
+│   ├── AUDIO.md
+│   └── handoffs/
 │
+├── cmake/
 └── scripts/
-    └── Scripts auxiliares
 ```
 
-### Responsabilidades principais
+Na branch Educativa, o projeto inclui adicionalmente `src/edu/` e os respectivos testes.
 
-**Core:** coordena os estados, a simulação, os eventos e a progressão da aventura.
+### Organização modular
 
-**Player:** implementa física, movimentação, colisões e representação dos personagens.
+O jogo é dividido em módulos responsáveis por gerenciar regras, física, cenários, obstáculos, itens, efeitos, interface, áudio e dispositivos de entrada.
 
-**Worlds:** produz os seis ambientes e as camadas gráficas.
+O núcleo coordena os estados e a progressão, enquanto os demais módulos executam responsabilidades específicas.
 
-**Obstacles:** controla obstáculos, dificuldade e perigos especiais.
-
-**Items:** gerencia coletáveis, energia, boosts e corações extras.
-
-**UI:** apresenta HUD, botões, menus e desafios.
-
-**Effects:** controla partículas, portais e transições.
-
-**Boss:** implementa as regras do confronto contra Grootspectro.
-
-**Edu:** organiza o banco de perguntas, a seleção das questões, o cronômetro e a avaliação das respostas.
-
-**Input:** converte comandos do controle em ações compatíveis com o sistema de entrada do jogo.
-
-A arquitetura permite aproveitar os mesmos módulos nas versões Arcade e Educativa, evitando duplicação integral do código.
+Essa separação facilita testes, manutenção e integração entre as diferentes implementações.
 
 ---
 
-## ⚙️ Como compilar
-
-A compilação é realizada preferencialmente pelo **MSYS2 UCRT64**, no Windows.
+## ⚙️ Compilação
 
 ### Pré-requisitos
+
+Para compilar no Windows, recomenda-se utilizar:
 
 - Git.
 - MSYS2 UCRT64.
 - GCC.
 - CMake 3.16 ou superior.
 - Ninja.
-- Conexão com a internet na primeira configuração, caso a raylib precise ser obtida pelo CMake.
 
-A versão utilizada da raylib é fixada em 5.5.
+O projeto utiliza raylib 5.5, obtida automaticamente pelo CMake quando necessário.
 
 ### Clonar o repositório
 
 ```bash
 git clone https://github.com/victorbpalazzin/MorphAdventure.git
-
 cd MorphAdventure
 ```
 
-### Compilar a versão Arcade
+### Compilar o Arcade
 
-A versão Arcade utiliza `MORPH_EDUCATIONAL=OFF`.
+A branch `main` contém a versão Arcade atualizada.
+
+No terminal MSYS2 UCRT64:
 
 ```bash
 cmake -S . -B build-arcade -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
-  -DMORPH_MODULES_LINKED=ON \
-  -DMORPH_EDUCATIONAL=OFF
-```
+  -DMORPH_MODULES_LINKED=ON
 
-Compilar:
-
-```bash
 cmake --build build-arcade
 ```
 
@@ -650,28 +435,25 @@ Executar:
 ./build-arcade/morph-adventure.exe
 ```
 
+O build sincroniza os arquivos de áudio necessários para a pasta `build-arcade/assets/audio`.
+
 ### Compilar a versão Educativa
 
-Primeiro, selecione a branch que contém a implementação educativa:
+Para trabalhar com a edição Educativa, utilize sua branch específica:
 
 ```bash
 git fetch origin
-
 git switch feature/modo-educativo
 ```
 
-Configure a compilação:
+Configure um diretório de build independente:
 
 ```bash
 cmake -S . -B build-educativo -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DMORPH_MODULES_LINKED=ON \
   -DMORPH_EDUCATIONAL=ON
-```
 
-Compilar:
-
-```bash
 cmake --build build-educativo
 ```
 
@@ -681,250 +463,132 @@ Executar:
 ./build-educativo/morph-adventure.exe
 ```
 
-### Alternância entre versões
-
-A opção CMake `MORPH_EDUCATIONAL` determina qual experiência será compilada.
-
-| Configuração | Resultado |
-|---|---|
-| `OFF` | Arcade |
-| `ON` | Educativo |
-
-O padrão é `OFF`.
-
-Não existe seleção de modos no menu inicial: as versões são definidas na compilação.
-
-As pastas de build devem permanecer separadas para evitar conflitos de configuração.
+**Observação:** a opção `MORPH_EDUCATIONAL` pertence à implementação educativa. A branch `main` do Arcade não utiliza essa opção. Para alternar entre as edições, selecione a branch correspondente.
 
 ---
 
 ## ✅ Testes e validação
 
-O projeto utiliza o **CTest** para executar testes automatizados.
+O projeto utiliza CTest para verificar os módulos e as regras de funcionamento.
 
-### Executar os testes do Arcade
+### Executar testes
 
 ```bash
 ctest --test-dir build-arcade --output-on-failure
 ```
 
-### Executar os testes do Educativo
+Na validação da versão Arcade com áudio e controle DualShock 4, foram registrados:
 
-```bash
-ctest --test-dir build-educativo --output-on-failure
-```
+- **20 testes executados e aprovados.**
+- Nenhuma falha entre os testes executados.
+- Um teste adicional de áudio desabilitado.
+- Compilação Release bem-sucedida.
+- Funcionamento manual do controle e do áudio confirmado no Windows.
+- Pacote ZIP validado quanto à integridade.
+- Execução verificada após extração em uma pasta separada do ambiente de desenvolvimento.
 
-### Testes realizados
+Os testes abrangem lógica, física, cenários, obstáculos, boosts, integração, áudio e comportamento do jogo.
 
-Os testes abrangem:
+O sistema de áudio possui verificações próprias de reprodução, eventos sonoros, preferências e integração com as diferentes etapas da aventura.
 
-- Inicialização e encerramento do jogo.
-- Atualização da simulação.
-- Física e colisões.
-- Sistema de vidas.
-- Pontuação.
-- Fragmentos e letras coletáveis.
-- Metas de progressão.
-- Boosts.
-- Portais e transições.
-- Interface e navegação.
-- Comportamento da batalha final.
-- Banco de questões.
-- Cronômetro de 12 segundos.
-- Respostas corretas e incorretas.
-- Tempo esgotado.
-- Segunda chance e ressurreição.
-- Conexão e desconexão de controles.
-- Mapeamento de comandos do DualShock 4.
-- Compatibilidade entre as regras das versões Arcade e Educativa.
+Os testes automatizados complementam, mas não substituem, a avaliação manual de jogabilidade e qualidade sonora.
 
-### Laboratórios e testes gráficos
-
-O projeto também contém executáveis específicos de validação visual.
-
-Entre eles estão:
-
-- `worlds-preview`: pré-visualização dos seis mundos.
-- `edu-lab`: teste de integração das mecânicas educativas.
-- `pad-lab`: teste de navegação e comandos de gamepad.
-
-O teste visual dos mundos pode produzir capturas dos cenários e personagens, auxiliando na validação gráfica e na documentação.
-
-### Validação no Windows
-
-A versão Arcade v1.0.0 passou por compilação Release, execução manual e **17 testes automatizados aprovados** na validação registrada.
-
-A versão Educativa v1.0.0 também foi compilada e teve seus testes automatizados executados com sucesso no Windows, além de testes manuais de funcionamento, incluindo o controle DualShock 4.
-
-Os testes automatizados complementam a validação humana, mas não substituem a avaliação contínua de dificuldade e jogabilidade.
+Para detalhes adicionais, consulte [TESTING.md](docs/TESTING.md).
 
 ---
 
-## 📦 Distribuição e empacotamento
+## 👥 Créditos e desenvolvimento
 
-As versões são distribuídas em arquivos ZIP compactos, contendo apenas os elementos necessários à execução.
+**Morph Adventure — Projeto acadêmico de Sistemas de Informação, CESAR School, 2026.**
 
-### Arcade
+O projeto foi construído de forma colaborativa, com desenvolvimento dividido em sete frentes principais.
 
-```text
-MorphAdventure-Arcade-v1.0.0-Windows-x64.zip
-└── entrega-arcade/
-    ├── morph-adventure.exe
-    └── LEIA-ME.txt
-```
-
-### Educativo
-
-```text
-MorphAdventure-Educativo-v1.0.0-Windows-x64.zip
-└── entrega-educativo/
-    ├── morph-adventure.exe
-    └── LEIA-ME.txt
-```
-
-A partir das versões com áudio, cada pacote também leva a pasta `assets/audio/` (músicas em Ogg Vorbis e efeitos em WAV/Ogg) ao lado do executável e o arquivo `CREDITOS.txt`. Sem essa pasta o jogo funciona, mas em silêncio.
-
-Os pacotes de distribuição não precisam incluir:
-
-- Código-fonte.
-- Cabeçalhos de desenvolvimento da raylib.
-- Bibliotecas estáticas usadas na compilação.
-- Arquivos de teste.
-- Configurações internas do CMake.
-
-O executável é compilado com as dependências apropriadas para Windows, sendo necessário apenas um sistema compatível.
-
-As Releases são mantidas de maneira independente para preservar o histórico do projeto.
-
----
-
-## 🔀 Organização das branches
-
-| Branch | Finalidade |
+| Frente | Responsabilidade |
 |---|---|
-| `main` | Base estável da versão Arcade |
-| `feature/modo-educativo` | Implementação educativa e suporte ao DualShock 4 |
-| `feature/grootspectro` | Desenvolvimento e integração da batalha final |
+| Pessoa 1 | Núcleo e integração |
+| Pessoa 2 | Personagens, física e colisões |
+| Pessoa 3 | Cenários e direção visual |
+| Pessoa 4 | Obstáculos e dificuldade |
+| Pessoa 5 | Energia, coletáveis e boosts |
+| Pessoa 6 | Interface, efeitos e portais |
+| Pessoa 7 | Build, testes, validação e distribuição |
 
-A versão educativa foi desenvolvida separadamente para evitar alterações involuntárias na experiência Arcade já publicada.
+O desenvolvimento também envolveu etapas posteriores de evolução do jogo, incluindo a batalha contra Grootspectro, a versão Educativa, o suporte ao DualShock 4 e a integração do sistema de áudio.
 
-A utilização de branches, commits e revisões facilita o acompanhamento da evolução do projeto.
+Os registros técnicos de cada frente estão disponíveis em [docs/handoffs/](docs/handoffs/).
 
----
+### 🎵 Créditos de áudio
 
-## 🚀 Evolução do Morph Adventure
+As músicas e os efeitos sonoros foram produzidos especificamente para Morph Adventure pela equipe do projeto.
 
-O desenvolvimento passou por diferentes etapas:
+Conforme registrado em `assets/audio/CREDITOS.txt`, a composição, síntese, mixagem e masterização dos recursos sonoros foram realizadas por meio das ferramentas próprias do repositório.
 
-**1. Protótipo inicial**
+A produção utiliza Python, NumPy, SciPy e FFmpeg/libvorbis.
 
-Criação de um jogo de voo lateral em HTML, inspirado em mecânicas de Flappy Bird.
+O material sonoro foi gerado por código, sem utilização de gravações, loops, amostras, melodias ou efeitos de terceiros.
 
-**2. Migração para C99**
+Os arquivos de áudio podem ser regenerados pelas ferramentas presentes em `tools/audio/`.
 
-Reconstrução do projeto com raylib 5.5, permitindo execução nativa no Windows.
+A reprodução durante o jogo utiliza raylib 5.5, distribuída sob licença zlib/libpng, com componentes de áudio como miniaudio e stb_vorbis.
 
-**3. Modularização**
+**Créditos e documentação oficial:**
 
-Divisão do desenvolvimento em sistemas de física, cenários, obstáculos, itens, interface e transições.
+- [CREDITOS.txt](assets/audio/CREDITOS.txt)
+- [AUDIO.md](docs/AUDIO.md)
+- [Ferramentas de produção sonora](tools/audio/)
 
-**4. Construção dos seis mundos**
+### Reconhecimentos
 
-Desenvolvimento dos ambientes elementais, com personagens próprios e dificuldade progressiva.
+O projeto representa a aplicação conjunta de programação, lógica, design de jogos, testes de software, colaboração e desenvolvimento de soluções tecnológicas.
 
-**5. Expansão da jogabilidade**
-
-Implementação de novos perigos ambientais, boosts, coleta de energia e aprimoramentos visuais.
-
-**6. Implementação de Grootspectro**
-
-Criação da batalha final, com projéteis, bateria de combate, três segmentos de vida e megarraio arco-íris.
-
-**7. Versão Arcade**
-
-Compilação e distribuição do jogo completo para Windows.
-
-**8. Versão Educativa**
-
-Adição de letras, banco de perguntas, cronômetro, desafios de progressão e ressurreição.
-
-**9. Suporte ao controle de PS4**
-
-Integração do DualShock 4 à versão educativa, permitindo uma experiência mais próxima de um arcade tradicional.
-
-**10. Testes e distribuição**
-
-Validação automatizada, testes manuais e disponibilização das duas versões por meio do GitHub Releases.
+Agradecimentos à equipe de desenvolvimento e à CESAR School pelo contexto acadêmico e pela oportunidade de transformar esses conhecimentos em uma aplicação prática.
 
 ---
 
-## 🤝 Desenvolvimento e colaboração
+## 📄 Licenciamento
 
-O projeto foi organizado em sete frentes principais:
+O repositório ainda não possui uma licença geral de distribuição e reutilização formalmente declarada.
 
-1. Núcleo do jogo e integração.
-2. Personagens, física e colisões.
-3. Cenários e direção de arte.
-4. Obstáculos e dificuldade.
-5. Coletáveis, energia e boosts.
-6. Interface, efeitos e portais.
-7. Compilação, testes e distribuição.
+A ausência de uma licença explícita não significa que o código e os recursos estejam disponíveis para reutilização irrestrita.
 
-O desenvolvimento utiliza Git e GitHub para organização das alterações, integração de funcionalidades e acompanhamento da evolução do software.
+As músicas e os efeitos acompanham a distribuição do jogo, conforme registrado no arquivo `assets/audio/CREDITOS.txt`.
 
-As novas funcionalidades educativas e o suporte ao controle foram incorporados à base modular, respeitando os sistemas previamente implementados.
+A adoção de uma licença específica para o projeto e para os recursos sonoros deverá ser definida pela equipe.
+
+A licença zlib/libpng da raylib é independente do licenciamento do código e do conteúdo original de Morph Adventure.
 
 ---
 
-## 📚 Documentação adicional
+## 🚀 Histórico de versões
 
-Consulte os documentos técnicos do repositório:
+| Versão | Principais entregas |
+|---|---|
+| v0.1.0 | Primeira versão de testes para Windows |
+| Arcade v1.0.0 | Aventura completa, seis mundos e Grootspectro |
+| Educativo v1.0.0 | Letras, perguntas de lógica, cronômetro e segunda chance |
+| Arcade v1.1.0 | Trilha sonora original, efeitos sonoros, volume e DualShock 4 |
 
-- [BUILD.md](docs/BUILD.md) — compilação e ambiente.
-- [TESTING.md](docs/TESTING.md) — testes e validação.
-- [CONTRACTS.md](docs/CONTRACTS.md) — contratos de integração.
-- [INTEGRATION.md](docs/INTEGRATION.md) — arquitetura e integração.
-- [AUDIO.md](docs/AUDIO.md) — trilha sonora, efeitos, volumes e como alterar o áudio.
-- [Documentação das entregas](docs/handoffs/) — registros técnicos das frentes de desenvolvimento.
-
----
-
-## 🎓 Objetivos acadêmicos
-
-O Morph Adventure demonstra a aplicação prática de conhecimentos de Sistemas de Informação, especialmente:
-
-- Programação estruturada em C.
-- Organização modular de software.
-- Lógica computacional.
-- Gerenciamento de estados.
-- Desenvolvimento de interfaces.
-- Física e detecção de colisões.
-- Programação gráfica.
-- Integração de dispositivos de entrada.
-- Testes automatizados.
-- Controle de versões.
-- Trabalho colaborativo.
-
-Na versão Educativa, o jogo também explora a utilização da tecnologia como ferramenta de aprendizagem, incentivando o contato com conceitos de Lógica Proposicional de maneira interativa.
+As versões publicadas permanecem disponíveis na seção [Releases](https://github.com/victorbpalazzin/MorphAdventure/releases).
 
 ---
 
-## 📄 Situação do projeto
+## 📚 Documentação
 
-**Arcade v1.0.0:** versão publicada para Windows.
+- [Compilação e ambiente](docs/BUILD.md)
+- [Testes e validação](docs/TESTING.md)
+- [Contratos do projeto](docs/CONTRACTS.md)
+- [Integração dos módulos](docs/INTEGRATION.md)
+- [Documentação de áudio](docs/AUDIO.md)
+- [Entregas e registros técnicos](docs/handoffs/)
 
-**Educativo v1.0.0:** versão publicada para Windows, incluindo desafios de lógica e suporte ao DualShock 4.
-
-O projeto permanece aberto a ajustes de balanceamento, acessibilidade, interface e novas funcionalidades.
-
-Para relatar problemas ou sugerir melhorias, utilize a seção de [Issues](https://github.com/victorbpalazzin/MorphAdventure/issues) do repositório.
+Para relatar um problema ou sugerir uma melhoria, utilize a seção [Issues](https://github.com/victorbpalazzin/MorphAdventure/issues).
 
 ---
 
 ### 🪽 Morph Adventure
 
-**Seis mundos. Uma única aventura. Novas formas de aprender.**
+**Seis mundos. Uma única aventura.**
 
 *Desenvolvido em C99 com raylib 5.5 — CESAR School, 2026.*
 
-**[Repositório no GitHub](https://github.com/victorbpalazzin/MorphAdventure)**
+[Repositório](https://github.com/victorbpalazzin/MorphAdventure) • [Releases](https://github.com/victorbpalazzin/MorphAdventure/releases)
