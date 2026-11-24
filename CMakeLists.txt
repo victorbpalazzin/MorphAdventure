@@ -38,6 +38,7 @@ add_library(morph_core STATIC
     src/boss/boss.c
     src/items/combat_energy.c
     src/input/gamepad.c
+    src/audio/audio_cues.c
     src/core/game.c
     src/core/viewport.c)
 target_include_directories(morph_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

@@ -1,0 +1,323 @@
+{
+  "music": {
+    "agua": {
+      "gain_db": -4.01,
+      "lufs": -15.9,
+      "seam_db": -13.8,
+      "seconds": 114.28999999999999,
+      "true_peak": -4.8
+    },
+    "ar": {
+      "gain_db": -5.0,
+      "lufs": -15.9,
+      "seam_db": -13.2,
+      "seconds": 106.67,
+      "true_peak": -6.2
+    },
+    "boss_1": {
+      "gain_db": -8.94,
+      "lufs": -19.0,
+      "seam_db": -13.8,
+      "seconds": 90.0,
+      "true_peak": -6.9
+    },
+    "boss_2": {
+      "gain_db": -8.94,
+      "lufs": -19.0,
+      "seam_db": -22.8,
+      "seconds": 90.0,
+      "true_peak": -5.1
+    },
+    "boss_3": {
+      "gain_db": -8.94,
+      "lufs": -24.7,
+      "seam_db": -31.5,
+      "seconds": 90.0,
+      "true_peak": -13.3
+    },
+    "derrota": {
+      "gain_db": -4.79,
+      "lufs": -16.0,
+      "seconds": 25.0,
+      "true_peak": -5.6
+    },
+    "floresta": {
+      "gain_db": -4.05,
+      "lufs": -15.9,
+      "seam_db": -13.1,
+      "seconds": 114.78,
+      "true_peak": -4.9
+    },
+    "fogo": {
+      "gain_db": -0.61,
+      "lufs": -16.1,
+      "seam_db": -13.7,
+      "seconds": 101.82,
+      "true_peak": -1.0
+    },
+    "gelo": {
+      "gain_db": -4.74,
+      "lufs": -16.0,
+      "seam_db": -22.4,
+      "seconds": 109.71000000000001,
+      "true_peak": -5.3
+    },
+    "menu": {
+      "gain_db": -3.49,
+      "lufs": -15.9,
+      "seam_db": -18.0,
+      "seconds": 120.0,
+      "true_peak": -4.5
+    },
+    "terra": {
+      "gain_db": -2.31,
+      "lufs": -15.9,
+      "seam_db": -8.2,
+      "seconds": 102.86,
+      "true_peak": -3.0
+    },
+    "vitoria": {
+      "gain_db": -5.99,
+      "lufs": -16.0,
+      "seconds": 44.4,
+      "true_peak": -6.6
+    }
+  },
+  "sfx": {
+    "battery_full": {
+      "file": "battery_full.ogg",
+      "peak_db": -4.0,
+      "seconds": 2.616
+    },
+    "battery_ready": {
+      "file": "battery_ready.ogg",
+      "peak_db": -5.0,
+      "seconds": 2.09
+    },
+    "beam": {
+      "file": "beam.ogg",
+      "peak_db": -1.5,
+      "seconds": 2.733
+    },
+    "boost_double": {
+      "file": "boost_double.ogg",
+      "peak_db": -5.0,
+      "seconds": 1.955
+    },
+    "boost_magnet": {
+      "file": "boost_magnet.ogg",
+      "peak_db": -5.0,
+      "seconds": 1.596
+    },
+    "boost_phase": {
+      "file": "boost_phase.ogg",
+      "peak_db": -5.0,
+      "seconds": 1.665
+    },
+    "boost_shield": {
+      "file": "boost_shield.ogg",
+      "peak_db": -5.0,
+      "seconds": 2.168
+    },
+    "boost_slow": {
+      "file": "boost_slow.ogg",
+      "peak_db": -5.0,
+      "seconds": 1.679
+    },
+    "boss_appear": {
+      "file": "boss_appear.ogg",
+      "peak_db": -3.0,
+      "seconds": 4.995
+    },
+    "boss_defeat": {
+      "file": "boss_defeat.ogg",
+      "peak_db": -2.0,
+      "seconds": 5.2
+    },
+    "boss_hurt": {
+      "file": "boss_hurt.ogg",
+      "peak_db": -3.0,
+      "seconds": 1.838
+    },
+    "boss_phase": {
+      "file": "boss_phase.ogg",
+      "peak_db": -2.0,
+      "seconds": 2.866
+    },
+    "boss_shot": {
+      "file": "boss_shot.wav",
+      "peak_db": -9.0,
+      "seconds": 0.841
+    },
+    "boss_warning": {
+      "file": "boss_warning.ogg",
+      "peak_db": -9.0,
+      "seconds": 1.721
+    },
+    "collect": {
+      "file": "collect.ogg",
+      "peak_db": -7.0,
+      "seconds": 1.677
+    },
+    "combat_energy": {
+      "file": "combat_energy.wav",
+      "peak_db": -6.0,
+      "seconds": 1.462
+    },
+    "defeat": {
+      "file": "defeat.ogg",
+      "peak_db": -4.0,
+      "seconds": 2.342
+    },
+    "env_agua": {
+      "file": "env_agua.ogg",
+      "peak_db": -6.0,
+      "seconds": 3.387
+    },
+    "env_ar": {
+      "file": "env_ar.ogg",
+      "peak_db": -6.0,
+      "seconds": 3.161
+    },
+    "env_floresta": {
+      "file": "env_floresta.ogg",
+      "peak_db": -6.0,
+      "seconds": 3.112
+    },
+    "env_fogo": {
+      "file": "env_fogo.ogg",
+      "peak_db": -6.0,
+      "seconds": 3.308
+    },
+    "env_gelo": {
+      "file": "env_gelo.ogg",
+      "peak_db": -6.0,
+      "seconds": 3.23
+    },
+    "env_terra": {
+      "file": "env_terra.ogg",
+      "peak_db": -6.0,
+      "seconds": 3.337
+    },
+    "env_warning": {
+      "file": "env_warning.ogg",
+      "peak_db": -10.0,
+      "seconds": 1.926
+    },
+    "flap_1": {
+      "file": "flap_1.wav",
+      "peak_db": -12.0,
+      "seconds": 0.2
+    },
+    "flap_2": {
+      "file": "flap_2.wav",
+      "peak_db": -12.0,
+      "seconds": 0.2
+    },
+    "flap_3": {
+      "file": "flap_3.wav",
+      "peak_db": -12.0,
+      "seconds": 0.2
+    },
+    "hazard_fire": {
+      "file": "hazard_fire.wav",
+      "peak_db": -8.0,
+      "seconds": 1.332
+    },
+    "hazard_ice": {
+      "file": "hazard_ice.wav",
+      "peak_db": -8.0,
+      "seconds": 1.149
+    },
+    "hazard_jelly": {
+      "file": "hazard_jelly.wav",
+      "peak_db": -8.0,
+      "seconds": 1.01
+    },
+    "hazard_rock": {
+      "file": "hazard_rock.wav",
+      "peak_db": -8.0,
+      "seconds": 1.266
+    },
+    "hazard_vine": {
+      "file": "hazard_vine.wav",
+      "peak_db": -8.0,
+      "seconds": 0.977
+    },
+    "hazard_warning": {
+      "file": "hazard_warning.wav",
+      "peak_db": -14.0,
+      "seconds": 0.82
+    },
+    "hazard_wind": {
+      "file": "hazard_wind.wav",
+      "peak_db": -8.0,
+      "seconds": 1.219
+    },
+    "hit": {
+      "file": "hit.wav",
+      "peak_db": -3.0,
+      "seconds": 0.88
+    },
+    "life_up": {
+      "file": "life_up.ogg",
+      "peak_db": -4.0,
+      "seconds": 1.512
+    },
+    "portal_enter": {
+      "file": "portal_enter.ogg",
+      "peak_db": -4.0,
+      "seconds": 2.623
+    },
+    "portal_open": {
+      "file": "portal_open.ogg",
+      "peak_db": -4.0,
+      "seconds": 3.406
+    },
+    "shield_break": {
+      "file": "shield_break.wav",
+      "peak_db": -4.0,
+      "seconds": 0.847
+    },
+    "ui_back": {
+      "file": "ui_back.wav",
+      "peak_db": -11.0,
+      "seconds": 1.398
+    },
+    "ui_confirm": {
+      "file": "ui_confirm.wav",
+      "peak_db": -10.0,
+      "seconds": 1.425
+    },
+    "ui_move": {
+      "file": "ui_move.wav",
+      "peak_db": -16.0,
+      "seconds": 1.21
+    },
+    "ui_pause": {
+      "file": "ui_pause.wav",
+      "peak_db": -11.0,
+      "seconds": 1.439
+    },
+    "ui_resume": {
+      "file": "ui_resume.wav",
+      "peak_db": -11.0,
+      "seconds": 1.439
+    },
+    "ui_start": {
+      "file": "ui_start.ogg",
+      "peak_db": -4.0,
+      "seconds": 2.945
+    },
+    "ui_volume": {
+      "file": "ui_volume.wav",
+      "peak_db": -14.0,
+      "seconds": 1.247
+    },
+    "world_whoosh": {
+      "file": "world_whoosh.ogg",
+      "peak_db": -4.0,
+      "seconds": 3.279
+    }
+  }
+}

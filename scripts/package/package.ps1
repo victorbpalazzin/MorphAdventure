@@ -50,6 +50,19 @@ try {
     Invoke-Step "Executando a partir da pasta limpa" {
         cmake "-DEXE=$exe" "-DWORK_DIR=$clean\smoke" "-DLAUNCHER=" -P (Join-Path $Root "tests\smoke\run_shell_smoke.cmake")
     }
+    $game = Join-Path $pkg.FullName "morph-adventure.exe"
+    if (Test-Path $game) {
+        foreach ($f in @("assets\audio\music\menu.ogg", "assets\audio\music\boss_3.ogg", "assets\audio\sfx\beam.ogg", "CREDITOS.txt")) {
+            if (-not (Test-Path (Join-Path $pkg.FullName $f))) { throw "Pacote sem $f" }
+        }
+        Invoke-Step "Jogo e áudio a partir da pasta limpa" {
+            $log = Join-Path $clean "jogo.log"
+            Push-Location $clean
+            try { & $game --smoke-frames 90 *> $log } finally { Pop-Location }
+            Get-Content $log | Select-String "AUDIO: Audio:|Audio desativado"
+            if (Select-String -Path $log -Pattern "pasta assets/audio nao encontrada" -Quiet) { throw "O jogo extraído não achou o áudio" }
+        }
+    }
     Write-Host "OK: $($zip.Name) abre fora da pasta de desenvolvimento neste computador."
 } finally {
     Remove-Item -Recurse -Force $clean -ErrorAction SilentlyContinue

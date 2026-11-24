@@ -376,6 +376,8 @@ A disponibilidade é restaurada apenas quando uma nova aventura começa.
 | Responder perguntas | Teclas 1–4 ou A–D |
 | Navegar pelas alternativas | Setas para cima e para baixo |
 | Confirmar alternativa selecionada | Enter ou Espaço |
+| Ligar ou desligar o som | M |
+| Ajustar volumes (na pausa) | 1, 2 ou 3 escolhem Geral, Música ou Efeitos; setas ← → ajustam; botões − e + com o mouse |
 
 Teclado e mouse permanecem disponíveis tanto no Arcade quanto no Educativo.
 
@@ -457,12 +459,38 @@ A vitória só é apresentada após a derrota completa de Grootspectro e a concl
 
 ---
 
+## 🎵 Trilha sonora e efeitos
+
+O Morph Adventure tem trilha e efeitos **originais**, compostos e sintetizados para o jogo, presentes nas versões Arcade e Educativa.
+
+| Momento | Música |
+|---|---|
+| Menu | Tema de abertura em Ré maior que apresenta o **motivo de Morph** |
+| Ar | Flauta, harpa e pads aéreos (Sol lídio) |
+| Água | Piano elétrico líquido, sub-grave e voz etérea (Mi dórico) |
+| Floresta | Kalimba, pizzicato e madeiras (Lá eólio) |
+| Gelo | Sinos de vidro, piano esparso e reverb cristalino (Si menor) |
+| Terra | Tambores, violão e trompas híbridas (Ré dórico) |
+| Fogo | Percussão intensa, reese, cordas e metais (Dó menor) |
+| Grootspectro | Batalha adaptativa em **três camadas** que crescem a cada fase |
+| Vitória e derrota | Resolução do motivo e um tema breve para tentar de novo |
+
+O motivo de Morph reaparece transformado em todos os mundos, criando a sensação de uma única jornada.
+
+Mais de quarenta efeitos acompanham voo, coleta (cada coleta sobe uma nota até a bateria encher), boosts, portais, perigos de cada mundo, interface e a batalha final, incluindo a sequência do **megarraio arco-íris** sincronizada com a animação.
+
+A música faz transições suaves entre mundos, congela na pausa e o volume pode ser ajustado sem reiniciar a partida. Todo o áudio é gerado por código no próprio repositório (`tools/audio/`). Detalhes em [AUDIO.md](docs/AUDIO.md).
+
+---
+
 ## 🛠️ Tecnologias utilizadas
 
 | Tecnologia | Aplicação |
 |---|---|
 | C99 | Linguagem principal do jogo |
-| raylib 5.5 | Renderização, janela, teclado, mouse e gamepads |
+| raylib 5.5 | Renderização, janela, teclado, mouse, gamepads e áudio |
+| Python 3 + numpy + scipy | Composição e síntese do áudio original (ferramentas em `tools/audio/`) |
+| FFmpeg / libvorbis | Codificação Ogg Vorbis e medição de loudness do áudio |
 | CMake | Configuração do projeto |
 | Ninja | Automação da compilação |
 | GCC / MSYS2 UCRT64 | Compilação para Windows |
@@ -754,6 +782,8 @@ MorphAdventure-Educativo-v1.0.0-Windows-x64.zip
     └── LEIA-ME.txt
 ```
 
+A partir das versões com áudio, cada pacote também leva a pasta `assets/audio/` (músicas em Ogg Vorbis e efeitos em WAV/Ogg) ao lado do executável e o arquivo `CREDITOS.txt`. Sem essa pasta o jogo funciona, mas em silêncio.
+
 Os pacotes de distribuição não precisam incluir:
 
 - Código-fonte.
@@ -854,6 +884,7 @@ Consulte os documentos técnicos do repositório:
 - [TESTING.md](docs/TESTING.md) — testes e validação.
 - [CONTRACTS.md](docs/CONTRACTS.md) — contratos de integração.
 - [INTEGRATION.md](docs/INTEGRATION.md) — arquitetura e integração.
+- [AUDIO.md](docs/AUDIO.md) — trilha sonora, efeitos, volumes e como alterar o áudio.
 - [Documentação das entregas](docs/handoffs/) — registros técnicos das frentes de desenvolvimento.
 
 ---
