@@ -420,3 +420,12 @@ direcional antes de confirmar (mesma proteção do Espaço). Navegação: um pas
 repetição após 0,40 s e depois a cada 0,18 s; analógico com histerese 0,55/0,35. O
 cronômetro de 12 s não depende do controle. `morph-adventure --gamepad-test` mostra o
 nome do controle e cada ação pressionada para conferir o mapeamento real.
+
+## Áudio (sem mudança de contrato)
+
+`src/audio/audio_cues.c` (puro, em morph_core) decide efeitos e plano musical a partir de
+eventos reais e de transições do GameState; `src/audio/audio.c` (raylib) toca. A
+composição (`composition.c`) envolve `player.step`, `effects.event` e `obstacles.step`
+apenas para ouvir eventos: nenhum callback altera estado do jogo por causa do áudio, e
+GameState, GameModules e MORPH_CONTRACT_VERSION não mudaram. Falta de dispositivo ou de
+arquivos deixa o jogo em silêncio, nunca em GAME_ERROR. Ver docs/AUDIO.md.

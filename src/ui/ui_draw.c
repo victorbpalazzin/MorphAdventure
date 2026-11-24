@@ -25,6 +25,34 @@ static void Button(UiButton b,bool focus)
     int size=b.command==COMMAND_RESTART?18:22;
     DrawText(b.label,(int)(r.x+(r.width-MeasureText(b.label,size))/2),(int)(r.y+(r.height-size)/2),size,b.command==COMMAND_RESTART?ink:GetColor(0x173443ff));
 }
+static void AudioPanel(const UiAudioView *a)
+{
+    static const char *labels[3]={"Geral","Musica","Efeitos"};
+    UiAudioRects r=UiAudioLayout();char text[32];
+    Panel((Rectangle){r.panel.x,r.panel.y,r.panel.width,r.panel.height},GetColor(0x0d2233f0));
+    DrawText("SOM",210,208,18,gold);
+    DrawText("Tudo congelado ate voce continuar.",262,211,14,Fade(ink,.75f));
+    Rectangle m={r.mute.x,r.mute.y,r.mute.width,r.mute.height};
+    Panel(m,a->muted?GetColor(0x6b2a33ff):GetColor(0x1f6b4cff));
+    const char *mute=a->muted?"Mudo":"Som ligado";
+    DrawText(mute,(int)(m.x+(m.width-MeasureText(mute,16))/2),(int)m.y+5,16,ink);
+    for(int i=0;i<3;i++){
+        float y=r.minus[i].y;bool sel=a->selected==i;
+        if(sel)DrawRectangleRoundedLinesEx((Rectangle){200,y-3,560,32},.3f,8,2,Fade(gold,.8f));
+        DrawText(labels[i],214,(int)y+4,18,sel?gold:ink);
+        for(int k=0;k<2;k++){
+            GameRect b=k?r.plus[i]:r.minus[i];
+            Panel((Rectangle){b.x,b.y,b.width,b.height},GetColor(0x254251ff));
+            DrawText(k?"+":"-",(int)(b.x+b.width/2-(k?5:3)),(int)b.y+3,20,ink);
+        }
+        Rectangle bar={r.bar[i].x,r.bar[i].y,r.bar[i].width,r.bar[i].height};
+        DrawRectangleRounded(bar,.5f,8,GetColor(0x0b1d2dff));
+        float v=a->muted?0:a->volume[i];
+        if(v>0)DrawRectangleRounded((Rectangle){bar.x,bar.y,bar.width*v,bar.height},.5f,8,a->muted?Fade(mint,.3f):mint);
+        snprintf(text,sizeof(text),"%d%%",(int)(a->volume[i]*100+.5f));
+        DrawText(text,692,(int)y+5,16,a->muted?Fade(ink,.5f):ink);
+    }
+}
 void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
 {
     if(g->mode==GAME_INTRO || g->mode==GAME_WON){
@@ -91,8 +119,12 @@ void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
         DrawLineEx((Vector2){240,125},(Vector2){720,125},2,Fade(gold,.6f));
         Center(g->mode==GAME_PAUSED?"A aventura espera":"Mais uma tentativa?",150,30,gold);
         if(g->mode==GAME_PAUSED){
-            Center("Tudo fica congelado ate voce continuar.",230,20,ink);
-            Center(UiGamepadHints()?"OPTIONS ou Circulo continua. X ativa o botao em foco.":"P continua. Espaco ativa o botao em foco.",274,20,mint);
+            UiAudioView a=UiGetAudioView();
+            if(a.available)AudioPanel(&a);
+            else{
+                Center("Tudo fica congelado ate voce continuar.",230,20,ink);
+                Center(UiGamepadHints()?"OPTIONS ou Circulo continua. X ativa o botao em foco.":"P continua. Espaco ativa o botao em foco.",274,20,mint);
+            }
         }else{
             Center("Uma nova partida comeca no Ar, com tres vidas.",230,20,ink);
             snprintf(text,sizeof(text),"Pontuacao: %" PRIu64,g->score);Center(text,278,24,mint);
@@ -101,6 +133,9 @@ void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
     UiButton b[2];unsigned n=UiButtons(g->mode,b);
     for(unsigned i=0;i<n;i++)Button(b[i],s->focus==(int)i && modal);
     if(modal)Center(UiGamepadHints()?"Direcional escolhe  |  X confirma  |  Circulo volta  |  OPTIONS pausa":
+        g->mode==GAME_PAUSED && UiGetAudioView().available?"Espaco ativa  |  P continua  |  1-3 e setas: volume  |  M: mudo":
         "Espaco ativa a opcao em foco  |  P pausa durante a partida",497,16,ink);
+    if(UiGetAudioView().muted && (g->mode==GAME_PLAY||g->mode==GAME_PORTAL||g->mode==GAME_TRANSITION||g->mode==GAME_BOSS))
+        DrawText("MUDO (M)",884,74,14,Fade(gold,.85f));
     if(g->mode==GAME_QUIZ)UiQuizDraw(s,g);
 }

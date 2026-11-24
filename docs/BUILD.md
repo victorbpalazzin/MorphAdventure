@@ -119,6 +119,10 @@ cmake -S . -B build-edu -DCMAKE_BUILD_TYPE=Release -DMORPH_MODULES_LINKED=ON -DM
 
 Não é permitido configurar o build dentro da pasta do código (`cmake -S . -B .`).
 
+## Áudio
+
+Com `-DMORPH_MODULES_LINKED=ON`, o alvo `morph-audio-assets` copia `assets/audio/` para junto de `morph-adventure` a cada build (o jogo procura `<pasta do executável>/assets/audio`). O pacote instala a mesma pasta e `CREDITOS.txt`. Para regenerar ou alterar músicas e efeitos (Python 3, numpy, scipy e ffmpeg com libvorbis): `python3 tools/audio/render.py all`. Ver [AUDIO.md](AUDIO.md).
+
 ## Janela de diagnóstico
 
 ```bash

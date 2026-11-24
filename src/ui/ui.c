@@ -56,6 +56,32 @@ static UiDecision QuizInput(UiState *s,const GameState *g,const GameInput *in,in
     if((activate || in->impulse_pressed) && s->quiz_focus>=0)result.command=b[s->quiz_focus].command;
     return result;
 }
+static UiAudioView audio_view;
+static UiAudioRequest audio_request={-1,0,false};
+UiAudioRects UiAudioLayout(void)
+{
+    UiAudioRects r;memset(&r,0,sizeof(r));
+    r.panel=(GameRect){190,198,580,138};r.mute=(GameRect){646,206,112,24};
+    for(int i=0;i<3;i++){
+        float y=238+i*31.0f;
+        r.minus[i]=(GameRect){352,y,30,26};r.bar[i]=(GameRect){392,y+8,250,10};r.plus[i]=(GameRect){652,y,30,26};
+    }
+    return r;
+}
+void UiSetAudioView(UiAudioView view){audio_view=view;}
+UiAudioView UiGetAudioView(void){return audio_view;}
+UiAudioRequest UiTakeAudioRequest(void){UiAudioRequest r=audio_request;audio_request=(UiAudioRequest){-1,0,false};return r;}
+static bool AudioClick(GameVec2 p)
+{
+    if(!audio_view.available)return false;
+    UiAudioRects r=UiAudioLayout();
+    if(Inside(p,r.mute)){audio_request.toggle_mute=true;return true;}
+    for(int i=0;i<3;i++){
+        if(Inside(p,r.minus[i])){audio_request.channel=i;audio_request.delta=-1;return true;}
+        if(Inside(p,r.plus[i])){audio_request.channel=i;audio_request.delta=1;return true;}
+    }
+    return false;
+}
 static UiDecision Input(void *p,const GameState *g,const GameInput *in)
 {
     UiState *s=p;UiDecision result={0};UiButton buttons[2];unsigned n=UiButtons(g->mode,buttons);
@@ -68,6 +94,7 @@ static UiDecision Input(void *p,const GameState *g,const GameInput *in)
     bool modal=g->mode==GAME_INTRO||g->mode==GAME_PAUSED||g->mode==GAME_LOST||g->mode==GAME_WON;
     if(in->pointer_pressed && in->pointer_inside){
         result.consumes_pointer=modal;
+        if(g->mode==GAME_PAUSED && AudioClick(in->pointer)){result.consumes_pointer=true;return result;}
         for(unsigned i=0;i<n;i++)if(Inside(in->pointer,buttons[i].rect)){
             s->focus=(int)i;result.command=buttons[i].command;result.consumes_pointer=true;return result;
         }
