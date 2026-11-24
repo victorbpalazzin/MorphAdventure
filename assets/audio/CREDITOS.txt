@@ -1,0 +1,21 @@
+MORPH ADVENTURE - CREDITOS DE AUDIO
+===================================
+
+Musicas (assets/audio/music) e efeitos sonoros (assets/audio/sfx)
+    Composicao, sintese, mixagem e masterizacao originais, feitas para o
+    Morph Adventure pela equipe do projeto, com as ferramentas do proprio
+    repositorio (tools/audio: Python + numpy + scipy; codificacao com ffmpeg/libvorbis).
+
+Origem
+    100% gerado por codigo. Nenhuma amostra, gravacao, loop de biblioteca,
+    melodia, arranjo ou efeito de terceiros foi usado. Os arquivos podem ser
+    regenerados de forma identica com:  python3 tools/audio/render.py all
+
+Licenca
+    O repositorio ainda nao declara uma licenca. Ate a equipe definir uma,
+    o audio segue a mesma condicao do restante do projeto e pode ser
+    distribuido junto com o jogo. Sugestao: Creative Commons Atribuicao 4.0
+    (CC BY 4.0) para musicas e efeitos.
+
+Bibliotecas usadas em tempo de execucao
+    raylib 5.5 (licenca zlib/libpng) - reproducao de audio (miniaudio, stb_vorbis).

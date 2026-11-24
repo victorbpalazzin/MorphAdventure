@@ -27,6 +27,9 @@ No Visual Studio (multi-config), acrescente `-C Release` ou `-C Debug`. Para fil
 | `check-macro-ndebug` | contract | Compilado sempre com `NDEBUG`; **precisa falhar** (`WILL_FAIL`). Prova que `MORPH_CHECK` continua ativo em Release |
 | `tests-no-assert` | contract | Nenhum `assert()` em `tests/` |
 | `morph-headers-standalone` | (build) | Cada cabeçalho de `src/core/` compila sozinho em C99, duas vezes (include guard). Falha na compilação, não no CTest |
+| `audio-cues` | core | Diretor de áudio puro: um efeito por evento, intervalos mínimos, melodia da coleta, plano musical por tela, camadas do chefe, megarraio, perigos e ambiente |
+| `audio-backend-run` | module;audio | raylib real: preferências, modo silencioso, carregamento de 47 efeitos e 12 músicas, fades, pausa, portal, camadas, vitória/derrota, mudo, arquivos ausentes (SKIP das partes com dispositivo se não houver placa de som) |
+| `audio-flow` | gui;audio | Jogo completo com módulos reais: cada evento real gera exatamente o efeito esperado; trilhas na ordem dos seis mundos e da batalha. Aceita `--tempo-real` para gravar a mixagem final |
 | `core-shell-smoke` | gui | Janela raylib real: 5 quadros, saída `initialized=1 ready=0 missing=0x3f frames=5` e captura PNG não vazia. No Linux sem monitor usa `xvfb-run`; sem ele, fica desabilitado |
 
 ## Checklist compartilhada (etapas 1 e 2)

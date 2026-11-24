@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "core/game.h"
 #include "core/viewport.h"
+#include "input/gamepad.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,9 +17,55 @@
 #ifdef MORPH_MODULES_LINKED
 #include "ui/ui.h"
 #include "items/items.h"
+#include "audio/audio.h"
 GameModules MorphCreateModules(void);
+
+/* Som: M silencia a qualquer momento; na pausa, 1-3 escolhem o canal e as setas
+ * ajustam. Cliques no painel chegam pela UI (UiTakeAudioRequest). */
+static int audio_selected = 0;
+static void AudioInput(const Game *g)
+{
+    if (IsKeyPressed(KEY_M)) AudioToggleMute();
+    if (g->state.mode == GAME_PAUSED) {
+        if (IsKeyPressed(KEY_ONE)) audio_selected = 0;
+        if (IsKeyPressed(KEY_TWO)) audio_selected = 1;
+        if (IsKeyPressed(KEY_THREE)) audio_selected = 2;
+        if (IsKeyPressed(KEY_LEFT)) AudioAdjust((AudioChannel)audio_selected, -1);
+        if (IsKeyPressed(KEY_RIGHT)) AudioAdjust((AudioChannel)audio_selected, 1);
+    }
+    UiAudioRequest r = UiTakeAudioRequest();
+    if (r.toggle_mute) AudioToggleMute();
+    if (r.channel >= 0 && r.channel < AUDIO_CHANNELS) { audio_selected = r.channel; AudioAdjust((AudioChannel)r.channel, r.delta); }
+    AudioSettings s = AudioGetSettings();
+    UiAudioView view = {AudioGetStats().enabled, {s.volume[0], s.volume[1], s.volume[2]}, s.muted, audio_selected};
+    UiSetAudioView(view);
+}
 #endif
 
+#ifdef MORPH_MODULES_LINKED
+static const int pad_buttons[PAD_BUTTON_COUNT] = {
+    GAMEPAD_BUTTON_RIGHT_FACE_DOWN, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT,
+    GAMEPAD_BUTTON_RIGHT_FACE_LEFT, GAMEPAD_BUTTON_MIDDLE_RIGHT,
+    GAMEPAD_BUTTON_LEFT_FACE_UP, GAMEPAD_BUTTON_LEFT_FACE_DOWN,
+    GAMEPAD_BUTTON_LEFT_FACE_LEFT, GAMEPAD_BUTTON_LEFT_FACE_RIGHT};
+
+static PadSnapshot ReadPad(void)
+{
+    PadSnapshot pad = {0};
+    pad.id = -1;
+    for (int id = 0; id < 4; id++) {
+        if (!IsGamepadAvailable(id)) continue;
+        pad.connected = true;
+        pad.id = id;
+        for (int b = 0; b < PAD_BUTTON_COUNT; b++) pad.down[b] = IsGamepadButtonDown(id, pad_buttons[b]);
+        pad.stick_x = GetGamepadAxisMovement(id, GAMEPAD_AXIS_LEFT_X);
+        pad.stick_y = GetGamepadAxisMovement(id, GAMEPAD_AXIS_LEFT_Y);
+        break;
+    }
+    return pad;
+}
+
+#endif
 static void DrawDiagnostic(const Game *g, GameInput input)
 {
     Color ink = {232, 237, 224, 255}, gold = {238, 207, 143, 255};
@@ -71,10 +118,14 @@ int main(int argc, char **argv)
     ItemsSetSeed((uint32_t)time(NULL) ^ (uint32_t)clock() ^
         (uint32_t)(GetTime()*1000000.0) ^ ((uint32_t)GetRandomValue(0,INT_MAX)<<1));
     modules = MorphCreateModules();
+    AudioInit(NULL); /* sem dispositivo ou arquivos: segue em silêncio, com aviso no log */
 #endif
     Game game;
     bool initialized = GameInit(&game, &modules);
     bool previous_touch = false;
+#ifdef MORPH_MODULES_LINKED
+    PadState pad_state; PadReset(&pad_state);
+#endif
     while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
         GameViewport viewport = ViewportFit(GetScreenWidth(), GetScreenHeight());
         GameInput input = {0};
@@ -87,12 +138,25 @@ int main(int argc, char **argv)
         if (IsKeyPressed(KEY_ENTER)) UiQueueNavigation(0, true);
 #endif
         if (game.state.mode == GAME_INTRO && input.impulse_pressed) input.command = COMMAND_START;
+#ifdef MORPH_MODULES_LINKED
+        if (PadSupported()) {
+            int pad_navigation = 0;
+            bool pad_activate = false;
+            PadActions pad = PadUpdate(&pad_state, ReadPad(), (double)GetFrameTime());
+            PadApply(pad, game.state.mode, &input, &pad_navigation, &pad_activate);
+            if (pad_navigation || pad_activate) UiQueueNavigation(pad_navigation, pad_activate);
+        }
+#endif
         bool touch = GetTouchPointCount() > 0;
         Vector2 point = touch ? GetTouchPosition(0) : GetMousePosition();
         input.pointer_inside = ViewportToLogical(viewport, (GameVec2){point.x, point.y}, &input.pointer);
         input.pointer_pressed = touch ? !previous_touch : IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
         previous_touch = touch;
         GameAdvance(&game, (double)GetFrameTime(), input);
+#ifdef MORPH_MODULES_LINKED
+        AudioInput(&game);
+        AudioFrame(&game.state, UiInspect().focus, (double)GetFrameTime());
+#endif
         BeginTextureMode(target);
         ClearBackground((Color){12, 23, 37, 255});
         if (!game.ready || game.state.mode == GAME_ERROR) DrawDiagnostic(&game, input);
@@ -114,6 +178,9 @@ int main(int argc, char **argv)
     printf("core-shell: initialized=%d ready=%d missing=0x%02x frames=%d\n",
            initialized, game.ready, game.missing_modules, frame);
     GameShutdown(&game);
+#ifdef MORPH_MODULES_LINKED
+    AudioShutdown();
+#endif
     UnloadRenderTexture(target);
     CloseWindow();
     return initialized ? 0 : 1;
