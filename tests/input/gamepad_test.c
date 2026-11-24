@@ -26,6 +26,16 @@ static void CheckEdges(void)
     MORPH_CHECK(PadUpdate(&s, held, DT).cross);
     PadUpdate(&s, Pad(), DT);
     MORPH_CHECK(Press(&s, PAD_CIRCLE).circle && Press(&s, PAD_SQUARE).square && Press(&s, PAD_OPTIONS).options);
+    MORPH_CHECK(Press(&s, PAD_TRIANGLE).triangle && Press(&s, PAD_L1).l1 && Press(&s, PAD_R1).r1);
+    PadSnapshot side = Pad(); side.down[PAD_RIGHT] = true;
+    PadActions h = PadUpdate(&s, side, DT); MORPH_CHECK(h.navigate == 1 && h.horizontal);
+    PadUpdate(&s, Pad(), DT);
+    PadSnapshot vert = Pad(); vert.down[PAD_DOWN] = true;
+    h = PadUpdate(&s, vert, DT); MORPH_CHECK(h.navigate == 1 && !h.horizontal);
+    PadUpdate(&s, Pad(), DT);
+    PadSnapshot stick = Pad(); stick.stick_x = -0.9f;
+    h = PadUpdate(&s, stick, DT); MORPH_CHECK(h.navigate == -1 && h.horizontal);
+    PadUpdate(&s, Pad(), DT);
     PadActions a = Press(&s, PAD_SQUARE);
     MORPH_CHECK(!a.cross && !a.circle && !a.options && a.navigate == 0);
 }
@@ -155,6 +165,16 @@ static void CheckRouting(void)
     MORPH_CHECK(keyboard.command == COMMAND_ANSWER_B);
     MORPH_CHECK(PadButtonName(PAD_CROSS)[0] && PadButtonName((PadButton)99)[0] == '?');
     MORPH_CHECK(PadSupported() == (MORPH_EDUCATIONAL != 0)); /* só a versão educativa lê o controle */
+    /* Som: na pausa ←/→ ajustam o volume em vez de trocar de botão; ↑/↓ seguem navegando. */
+    PadActions right = {.navigate = 1, .horizontal = true}, l1 = {.l1 = true}, r1 = {.r1 = true}, tri = {.triangle = true};
+    in = Apply(right, GAME_PAUSED, &nav, &act);
+    MORPH_CHECK(nav == 0 && !act && PadAudioActions(right, GAME_PAUSED).adjust == 1);
+    MORPH_CHECK(Apply(down, GAME_PAUSED, &nav, &act).command == COMMAND_NONE && nav == 1 && PadAudioActions(down, GAME_PAUSED).adjust == 0);
+    in = Apply(right, GAME_INTRO, &nav, &act); MORPH_CHECK(nav == 1 && PadAudioActions(right, GAME_INTRO).adjust == 0);
+    MORPH_CHECK(PadAudioActions(l1, GAME_PAUSED).select == -1 && PadAudioActions(r1, GAME_PAUSED).select == 1);
+    MORPH_CHECK(PadAudioActions(r1, GAME_PLAY).select == 0);              /* fora da pausa L1/R1 não mexem no som */
+    MORPH_CHECK(PadAudioActions(tri, GAME_PLAY).toggle_mute && PadAudioActions(tri, GAME_QUIZ).toggle_mute);
+    in = Apply(tri, GAME_PLAY, &nav, &act); MORPH_CHECK(!in.impulse_pressed && in.command == COMMAND_NONE);
 }
 
 int main(void)

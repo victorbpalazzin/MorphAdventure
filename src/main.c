@@ -23,9 +23,13 @@ GameModules MorphCreateModules(void);
 /* Som: M silencia a qualquer momento; na pausa, 1-3 escolhem o canal e as setas
  * ajustam. Cliques no painel chegam pela UI (UiTakeAudioRequest). */
 static int audio_selected = 0;
+static PadAudio pad_audio;   /* pedidos de som feitos pelo controle neste quadro */
 static void AudioInput(const Game *g)
 {
-    if (IsKeyPressed(KEY_M)) AudioToggleMute();
+    if (IsKeyPressed(KEY_M) || pad_audio.toggle_mute) AudioToggleMute();
+    if (pad_audio.select) audio_selected = (audio_selected + pad_audio.select + AUDIO_CHANNELS) % AUDIO_CHANNELS;
+    if (pad_audio.adjust) AudioAdjust((AudioChannel)audio_selected, pad_audio.adjust);
+    pad_audio = (PadAudio){0, 0, false};
     if (g->state.mode == GAME_PAUSED) {
         if (IsKeyPressed(KEY_ONE)) audio_selected = 0;
         if (IsKeyPressed(KEY_TWO)) audio_selected = 1;
@@ -51,7 +55,8 @@ static const int pad_buttons[PAD_BUTTON_COUNT] = {
     GAMEPAD_BUTTON_RIGHT_FACE_DOWN, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT,
     GAMEPAD_BUTTON_RIGHT_FACE_LEFT, GAMEPAD_BUTTON_MIDDLE_RIGHT,
     GAMEPAD_BUTTON_LEFT_FACE_UP, GAMEPAD_BUTTON_LEFT_FACE_DOWN,
-    GAMEPAD_BUTTON_LEFT_FACE_LEFT, GAMEPAD_BUTTON_LEFT_FACE_RIGHT};
+    GAMEPAD_BUTTON_LEFT_FACE_LEFT, GAMEPAD_BUTTON_LEFT_FACE_RIGHT,
+    GAMEPAD_BUTTON_RIGHT_FACE_UP, GAMEPAD_BUTTON_LEFT_TRIGGER_1, GAMEPAD_BUTTON_RIGHT_TRIGGER_1};
 
 static PadSnapshot ReadPad(void)
 {
@@ -89,11 +94,11 @@ static void GamepadTest(void)
             DrawText(TextFormat("Controle %d: %s", pad.id, GetGamepadName(pad.id)), 30, 70, 20, ink);
             for (int b = 0; b < PAD_BUTTON_COUNT; b++)
                 DrawText(TextFormat("%-10s %s", PadButtonName((PadButton)b), pad.down[b] ? "PRESSIONADO" : "-"),
-                         30, 110 + b * 28, 20, pad.down[b] ? on : ink);
+                         30 + (b / 6) * 330, 110 + (b % 6) * 34, 20, pad.down[b] ? on : ink);
             DrawText(TextFormat("Analogico esquerdo: x=%.2f  y=%.2f  | navegacao acumulada: %d",
                                 pad.stick_x, pad.stick_y, navigated), 30, 346, 20, ink);
             DrawText(TextFormat("Ultimo botao raylib (GetGamepadButtonPressed): %d", last), 30, 380, 20, ink);
-            DrawText("Esperado no DualShock 4: X=7 Circulo=6 Quadrado=8 OPTIONS=15", 30, 414, 18, gold);
+            DrawText("Esperado no DualShock 4: X=7 Circulo=6 Quadrado=8 Triangulo=5 L1=9 R1=11 OPTIONS=15", 30, 414, 18, gold);
         }
         EndDrawing();
     }
@@ -200,6 +205,7 @@ int main(int argc, char **argv)
             int pad_navigation = 0; bool pad_activate = false;
             PadActions pad = PadUpdate(&pad_state, ReadPad(), (double)GetFrameTime());
             PadApply(pad, game.state.mode, &input, &pad_navigation, &pad_activate);
+            pad_audio = PadAudioActions(pad, game.state.mode);
             if (pad_navigation || pad_activate) UiQueueNavigation(pad_navigation, pad_activate);
             UiSetGamepadHints(pad_state.connected);
         }
@@ -212,7 +218,7 @@ int main(int argc, char **argv)
         GameAdvance(&game, (double)GetFrameTime(), input);
 #ifdef MORPH_MODULES_LINKED
         AudioInput(&game);
-        AudioFrame(&game.state, UiInspect().focus, (double)GetFrameTime());
+        AudioFrame(&game.state, game.state.mode == GAME_QUIZ ? UiInspect().quiz_focus : UiInspect().focus, (double)GetFrameTime());
 #endif
         BeginTextureMode(target);
         ClearBackground((Color){12, 23, 37, 255});

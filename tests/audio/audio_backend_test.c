@@ -53,9 +53,10 @@ static void CheckDevice(const char *assets, const char *broken)
     }
     MORPH_CHECK(ok && st.enabled);
     printf("dispositivo OK: %u efeitos e %u musicas\n", st.sounds_loaded, st.music_loaded);
-    MORPH_CHECK(st.sounds_loaded == 47 && st.sounds_missing == 0 && st.music_loaded == 12 && st.music_missing == 0);
+    /* versão educativa: 47 efeitos compartilhados + 12 dos desafios */
+    MORPH_CHECK(st.sounds_loaded == 59 && st.sounds_missing == 0 && st.music_loaded == 12 && st.music_missing == 0);
     MORPH_CHECK(AudioInitFrom(assets, "audio-test-prefs.cfg"));   /* segunda chamada não reabre o dispositivo */
-    MORPH_CHECK(AudioGetStats().sounds_loaded == 47);
+    MORPH_CHECK(AudioGetStats().sounds_loaded == 59);
     /* todos os efeitos tocam (com variações de arquivo) */
     for (int c = CUE_NONE + 1; c < CUE_COUNT; c++)
         for (int p = 0; p < 6; p++) AudioPlayCue((AudioCueEvent){(AudioCue)c, p, p % 3, 1, 0.5f, 0});
@@ -81,6 +82,13 @@ static void CheckDevice(const char *assets, const char *broken)
     MORPH_CHECK(AudioGetStats().music_paused && AudioGetStats().current == MUSIC_AR);
     Mode(GAME_PLAY); Frames(0.1);
     MORPH_CHECK(!AudioGetStats().music_paused && AudioGetStats().current == MUSIC_AR);
+    /* desafio educativo: a mesma faixa continua, atenuada, e volta gradualmente */
+    g.edu.quiz.kind = QUIZ_PASSAGE; g.edu.quiz.return_mode = GAME_PLAY; Mode(GAME_QUIZ); Frames(1.5);
+    MORPH_CHECK(AudioGetStats().current == MUSIC_AR && fabsf(AudioGetStats().music_gain - full * AUDIO_QUIZ_DUCK) < 1e-3f);
+    Mode(GAME_PLAY); Frames(0.2);
+    MORPH_CHECK(AudioGetStats().music_gain > full * AUDIO_QUIZ_DUCK && AudioGetStats().music_gain < full); /* subindo, sem salto */
+    Frames(1.0); MORPH_CHECK(fabsf(AudioGetStats().music_gain - full) < 1e-3f);
+    g.edu.quiz.kind = QUIZ_NONE;
     /* portal: a faixa sai, a do novo mundo entra */
     Mode(GAME_PORTAL); Mode(GAME_TRANSITION); Frames(1.5);
     MORPH_CHECK(AudioGetStats().music_gain < 0.05f);
@@ -113,7 +121,7 @@ static void CheckDevice(const char *assets, const char *broken)
     /* arquivos ausentes misturados com válidos: carrega o resto e não trava */
     MORPH_CHECK(AudioInitFrom(broken, "audio-test-prefs.cfg"));
     st = AudioGetStats();
-    MORPH_CHECK(st.sounds_missing == 1 && st.music_missing == 1 && st.sounds_loaded == 46 && st.music_loaded == 11);
+    MORPH_CHECK(st.sounds_missing == 1 && st.music_missing == 1 && st.sounds_loaded == 58 && st.music_loaded == 11);
     AudioPlayCue((AudioCueEvent){CUE_BEAM, 0, 0, 1, 1, 0});            /* removido: ignorado com segurança */
     memset(&g, 0, sizeof(g)); g.mode = GAME_PLAY; Frames(1.0);         /* ar.ogg removido: segue sem música */
     MORPH_CHECK(AudioGetStats().current == MUSIC_NONE);

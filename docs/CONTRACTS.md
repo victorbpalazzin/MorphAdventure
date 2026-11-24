@@ -429,3 +429,9 @@ composição (`composition.c`) envolve `player.step`, `effects.event` e `obstacl
 apenas para ouvir eventos: nenhum callback altera estado do jogo por causa do áudio, e
 GameState, GameModules e MORPH_CONTRACT_VERSION não mudaram. Falta de dispositivo ou de
 arquivos deixa o jogo em silêncio, nunca em GAME_ERROR. Ver docs/AUDIO.md.
+
+Na versão educativa o diretor também observa `edu.quiz` (abertura, fase, resultado,
+serial e segundos restantes) e o foco da alternativa (UiSnapshot.quiz_focus), sem
+alterá-los. Durante GAME_QUIZ o plano musical mantém a faixa de `return_mode` com
+atenuação AUDIO_QUIZ_DUCK. O controle ganhou Triângulo, L1 e R1 (PadAudioActions):
+na pausa ←/→ ajustam volume em vez de navegar; fora dela nada muda.

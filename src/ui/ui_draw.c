@@ -132,7 +132,9 @@ void UiDraw(const UiState *s,const GameState *g,const ItemsView *v)
     }
     UiButton b[2];unsigned n=UiButtons(g->mode,b);
     for(unsigned i=0;i<n;i++)Button(b[i],s->focus==(int)i && modal);
-    if(modal)Center(UiGamepadHints()?"Direcional escolhe  |  X confirma  |  Circulo volta  |  OPTIONS pausa":
+    if(modal)Center(UiGamepadHints()?(g->mode==GAME_PAUSED && UiGetAudioView().available?
+        "X confirma  |  Circulo volta  |  L1/R1 canal  |  <- -> volume  |  Triangulo: mudo":
+        "Direcional escolhe  |  X confirma  |  Circulo volta  |  OPTIONS pausa"):
         g->mode==GAME_PAUSED && UiGetAudioView().available?"Espaco ativa  |  P continua  |  1-3 e setas: volume  |  M: mudo":
         "Espaco ativa a opcao em foco  |  P pausa durante a partida",497,16,ink);
     if(UiGetAudioView().muted && (g->mode==GAME_PLAY||g->mode==GAME_PORTAL||g->mode==GAME_TRANSITION||g->mode==GAME_BOSS))

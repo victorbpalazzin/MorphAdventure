@@ -16,6 +16,8 @@ typedef enum PadButton {
     PAD_SQUARE,   /* Quadrado: megarraio na batalha final */
     PAD_OPTIONS,  /* OPTIONS: pausar/retomar */
     PAD_UP, PAD_DOWN, PAD_LEFT, PAD_RIGHT, /* direcional digital */
+    PAD_TRIANGLE, /* Triângulo: liga/desliga o som */
+    PAD_L1, PAD_R1, /* na pausa: canal de volume anterior/seguinte */
     PAD_BUTTON_COUNT
 } PadButton;
 
@@ -38,13 +40,20 @@ typedef struct PadState {
     bool previous[PAD_BUTTON_COUNT];
     bool stick_engaged;
     int held_direction;           /* -1, 0, +1 */
+    bool held_horizontal;
     float repeat_timer;
 } PadState;
 
 typedef struct PadActions {
     bool cross, circle, square, options; /* bordas de pressionamento */
+    bool triangle, l1, r1;
     int navigate;                        /* -1 anterior, +1 próxima, 0 nada */
+    bool horizontal;                     /* o passo veio de ←/→ (na pausa ajusta volume) */
 } PadActions;
+
+/* Controles de som pelo controle (pausa: L1/R1 canal, ←/→ volume; Triângulo: mudo). */
+typedef struct PadAudio { int select; int adjust; bool toggle_mute; } PadAudio;
+PadAudio PadAudioActions(PadActions actions, GameMode mode);
 
 /* true apenas no build educativo; main.c consulta antes de ler o controle. */
 bool PadSupported(void);

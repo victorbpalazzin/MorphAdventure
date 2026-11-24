@@ -6,6 +6,7 @@
 #include "core/game.h"
 #include "boss/boss.h"
 #include "audio/audio.h"
+#include "edu/quiz.h"
 #include "items/items_internal.h"
 #include "obstacles/obstacles.h"
 #include "player/player.h"
@@ -24,7 +25,8 @@ static bool realtime;  /* --tempo-real: 60 quadros/s, para gravar a mixagem fina
 
 static void Record(void)
 {
-    AudioFrame(&game.state, UiInspect().focus, 1.0 / 60);  /* atualiza o diretor (e toca, se houver som) */
+    /* mesmo foco que main.c envia: alternativa no desafio, botão nas outras telas */
+    AudioFrame(&game.state, game.state.mode == GAME_QUIZ ? UiInspect().quiz_focus : UiInspect().focus, 1.0 / 60);
     AudioDirector *d = AudioDirectorShared();
     for (unsigned i = 0; i < d->cue_count; i++) counts[d->cues[i].cue]++;
     if (d->plan.track != MUSIC_NONE && (track_count == 0 || tracks_seen[track_count - 1] != d->plan.track) && track_count < 64)
@@ -187,6 +189,64 @@ static void Campaign(void)
     MORPH_CHECK(Delta(b, CUE_UI_BACK) == 1 && AudioDirectorShared()->plan.track == MUSIC_MENU);
 }
 
+/* Versão educativa: letras, desafios com cronômetro, portal, segunda chance e atenuação. */
+static void Wait(int frames) { for (int i = 0; i < frames; i++) Tick(); }
+static GameCommand Right(void) { return (GameCommand)(COMMAND_ANSWER_A + QuizCurrent(&game.state.edu.quiz)->correct); }
+static GameCommand Wrong(void) { return (GameCommand)(COMMAND_ANSWER_A + (QuizCurrent(&game.state.edu.quiz)->correct + 1) % 4); }
+static void Answer(GameCommand c) { Wait(25); GameInput in = {.focused = true, .command = c}; Advance(in); }
+static void Continue(void) { Wait(35); GameInput in = {.focused = true, .command = COMMAND_CONTINUE}; Advance(in); }
+
+static void Educational(void)
+{
+    unsigned b[CUE_COUNT];
+    GameShutdown(&game);
+    GameModules modules = MorphCreateModules();
+    MORPH_CHECK(GameInitMode(&game, &modules, true) && game.ready);
+    Record();
+    Command(COMMAND_START);
+    ItemsState *items = game.modules.items.life.context;
+    Snapshot(b);
+    items->fragment_count = 1; items->fragments[0] = (ItemFragmentView){0, Player().position, 23, 0, 0}; Tick();
+    MORPH_CHECK(Delta(b, CUE_LETTER) == 1 && Delta(b, CUE_COLLECT) == 0);
+    /* desafio do portal */
+    SetEnergy(GameEnergyRequired(0));
+    Snapshot(b);
+    for (int i = 0; i < 900 && game.state.mode == GAME_PLAY; i++) Fly();
+    MORPH_CHECK(game.state.mode == GAME_QUIZ && Delta(b, CUE_QUIZ_OPEN) == 1);
+    const MusicPlan *plan = &AudioDirectorShared()->plan;
+    MORPH_CHECK(plan->track == MUSIC_AR && plan->duck == AUDIO_QUIZ_DUCK && !plan->paused);
+    UiQueueNavigation(1, false); Tick(); Wait(4); UiQueueNavigation(1, false); Tick();
+    MORPH_CHECK(Delta(b, CUE_QUIZ_SELECT) == 2);
+    Answer(Wrong()); MORPH_CHECK(Delta(b, CUE_QUIZ_WRONG) == 1);
+    Continue(); MORPH_CHECK(Delta(b, CUE_QUIZ_NEW) == 1);
+    Wait(12 * 60 + 5);
+    MORPH_CHECK(game.state.edu.quiz.result == QUIZ_TIMEOUT && Delta(b, CUE_QUIZ_TICK) == 3 && Delta(b, CUE_QUIZ_TIMEOUT) == 1);
+    Continue(); MORPH_CHECK(Delta(b, CUE_QUIZ_NEW) == 2);
+    Answer(Right()); MORPH_CHECK(Delta(b, CUE_QUIZ_CORRECT) == 1);
+    Continue();
+    MORPH_CHECK(game.state.mode == GAME_PORTAL && Delta(b, CUE_QUIZ_UNLOCK) == 1 && Delta(b, CUE_PORTAL_OPEN) == 1 && plan->duck == 1);
+    for (int i = 0; i < 400 && game.state.mode != GAME_PLAY; i++) Tick();
+    MORPH_CHECK(game.state.world == 1 && plan->track == MUSIC_AGUA);
+    /* segunda chance: abre, acerta, revive; a próxima derrota é direta */
+    Snapshot(b);
+    game.state.lives = 1;
+    for (int i = 0; i < 600 && game.state.mode == GAME_PLAY; i++) Tick();
+    MORPH_CHECK(game.state.mode == GAME_QUIZ && Delta(b, CUE_REVIVE_OPEN) == 1 && Delta(b, CUE_DEFEAT) == 0);
+    MORPH_CHECK(plan->track == MUSIC_AGUA && plan->duck == AUDIO_QUIZ_DUCK);
+    Answer(Right()); Continue();
+    MORPH_CHECK(game.state.mode == GAME_PLAY && game.state.lives == 1 && Delta(b, CUE_REVIVE_SUCCESS) == 1);
+    for (int i = 0; i < 900 && game.state.mode == GAME_PLAY; i++) Tick();
+    MORPH_CHECK(game.state.mode == GAME_LOST && Delta(b, CUE_DEFEAT) == 1 && Delta(b, CUE_REVIVE_FAIL) == 0);
+    /* nova aventura: segunda chance recusada -> som de falha, sem som de derrota duplicado */
+    Command(COMMAND_RETRY);
+    Snapshot(b);
+    game.state.lives = 1;
+    for (int i = 0; i < 600 && game.state.mode == GAME_PLAY; i++) Tick();
+    Answer(Wrong()); Continue();
+    MORPH_CHECK(game.state.mode == GAME_LOST && Delta(b, CUE_REVIVE_FAIL) == 1 && Delta(b, CUE_DEFEAT) == 0);
+    MORPH_CHECK(plan->track == MUSIC_DEFEAT);
+}
+
 int main(int argc, char **argv)
 {
     MORPH_CHECK(argc == 2 || argc == 3);
@@ -197,11 +257,12 @@ int main(int argc, char **argv)
     ItemsSetSeed(5);
     sound = AudioInitFrom(argv[1], "audio-flow-prefs.cfg");
     GameModules modules = MorphCreateModules();
-    MORPH_CHECK(GameInit(&game, &modules) && game.ready);
+    MORPH_CHECK(GameInitMode(&game, &modules, false) && game.ready); /* fluxo arcade; o educativo vem depois */
     Record();
     Gameplay();
     Hazards();
     Campaign();
+    Educational();
     AudioStats st = AudioGetStats();
     unsigned total = 0;
     for (int c = 0; c < CUE_COUNT; c++) total += counts[c];
@@ -212,6 +273,8 @@ int main(int argc, char **argv)
     remove("audio-flow-prefs.cfg");
     CloseWindow();
     puts("PASS audio-flow: modulos reais, um efeito por evento (asa, coleta, boosts, escudo, dano, perigos, ambiente), "
-         "seis portais com trilhas em ordem, batalha em fases, megarraio, vitoria e derrota");
+         "seis portais com trilhas em ordem, batalha em fases, megarraio, vitoria e derrota; "
+         "educativo: letras, desafios (selecao, erro, nova pergunta, 3 tiques, tempo esgotado, acerto, portal), "
+         "segunda chance e musica atenuada");
     return 0;
 }

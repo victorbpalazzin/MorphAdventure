@@ -161,6 +161,59 @@ static void CheckHazardsAndEnvironment(void)
     MORPH_CHECK(strcmp(AudioCueName(CUE_BEAM), "beam") == 0 && strcmp(AudioCueName((AudioCue)999), "?") == 0);
 }
 
+/* Versão educativa: letras, desafios, cronômetro, segunda chance e música atenuada. */
+static void CheckEducational(void)
+{
+    Fresh(GAME_PLAY);
+    g.edu.enabled = true;
+    g.distance = 250; Event(EVENT_FRAGMENT_COLLECTED, 0); Frame();
+    MORPH_CHECK(Count(CUE_LETTER) == 1 && Count(CUE_COLLECT) == 0);
+    /* pergunta de passagem: abre, atenua a música mantendo a faixa do mundo */
+    g.mode = GAME_QUIZ; g.edu.quiz.kind = QUIZ_PASSAGE; g.edu.quiz.return_mode = GAME_PLAY;
+    g.edu.quiz.phase = QUIZ_ASKING; g.edu.quiz.seconds_left = 12; g.edu.quiz.serial = 1; Frame();
+    MORPH_CHECK(Count(CUE_QUIZ_OPEN) == 1 && d.plan.track == MUSIC_AR && d.plan.duck == AUDIO_QUIZ_DUCK && !d.plan.paused);
+    AudioDirectorUpdate(&d, &g, -1, DT); MORPH_CHECK(Count(CUE_QUIZ_SELECT) == 0);
+    AudioDirectorUpdate(&d, &g, 0, DT); MORPH_CHECK(Count(CUE_QUIZ_SELECT) == 1);   /* primeira escolha também soa */
+    AudioDirectorUpdate(&d, &g, 0, DT); MORPH_CHECK(Count(CUE_QUIZ_SELECT) == 0);   /* foco parado: silêncio */
+    for (int i = 0; i < 3; i++) Frame();
+    AudioDirectorUpdate(&d, &g, 1, DT); MORPH_CHECK(Count(CUE_QUIZ_SELECT) == 1);
+    /* cronômetro: só 3, 2 e 1 produzem tique, cada um uma vez, subindo */
+    unsigned ticks = 0; float last = 0;
+    for (float t = 12; t > 0.01f; t -= 1.0f / 60) {
+        g.edu.quiz.seconds_left = t; AudioDirectorUpdate(&d, &g, 1, DT);
+        for (unsigned i = 0; i < d.cue_count; i++) if (d.cues[i].cue == CUE_QUIZ_TICK) { ticks++; MORPH_CHECK(d.cues[i].pitch > last); last = d.cues[i].pitch; }
+    }
+    MORPH_CHECK(ticks == 3);
+    g.edu.quiz.phase = QUIZ_FEEDBACK; g.edu.quiz.result = QUIZ_TIMEOUT; g.edu.quiz.serial++; Frame();
+    MORPH_CHECK(Count(CUE_QUIZ_TIMEOUT) == 1);
+    g.edu.quiz.phase = QUIZ_ASKING; g.edu.quiz.seconds_left = 12; g.edu.quiz.serial++; Frame();
+    MORPH_CHECK(Count(CUE_QUIZ_NEW) == 1 && Count(CUE_QUIZ_OPEN) == 0);
+    g.edu.quiz.phase = QUIZ_FEEDBACK; g.edu.quiz.result = QUIZ_WRONG; g.edu.quiz.serial++; Frame();
+    MORPH_CHECK(Count(CUE_QUIZ_WRONG) == 1);
+    for (int i = 0; i < 30; i++) { Frame(); MORPH_CHECK(d.cue_count == 0); }   /* feedback parado: silêncio */
+    g.edu.quiz.phase = QUIZ_ASKING; g.edu.quiz.serial++; Frame();
+    g.edu.quiz.phase = QUIZ_FEEDBACK; g.edu.quiz.result = QUIZ_CORRECT; g.edu.quiz.serial++; Frame();
+    MORPH_CHECK(Count(CUE_QUIZ_CORRECT) == 1);
+    /* pausa durante a pergunta e volta: sem reabrir a pergunta */
+    g.resume_mode = GAME_QUIZ; g.mode = GAME_PAUSED; Frame();
+    MORPH_CHECK(d.plan.paused && d.plan.track == MUSIC_AR && d.plan.duck == AUDIO_QUIZ_DUCK);
+    g.mode = GAME_QUIZ; Frame(); MORPH_CHECK(Count(CUE_UI_RESUME) == 1 && Count(CUE_QUIZ_OPEN) == 0);
+    g.mode = GAME_PORTAL; g.edu.quiz.kind = QUIZ_NONE; Frame();
+    MORPH_CHECK(Count(CUE_QUIZ_UNLOCK) == 1 && Count(CUE_PORTAL_OPEN) == 1 && d.plan.duck == 1);
+    /* segunda chance: abre, acerto revive; depois falha leva à derrota sem som duplicado */
+    g.mode = GAME_PLAY; Frame();
+    g.mode = GAME_QUIZ; g.edu.quiz.kind = QUIZ_REVIVE; g.edu.quiz.return_mode = GAME_PLAY; g.edu.quiz.serial++; Frame();
+    MORPH_CHECK(Count(CUE_REVIVE_OPEN) == 1 && Count(CUE_QUIZ_OPEN) == 0);
+    g.mode = GAME_PLAY; Frame(); MORPH_CHECK(Count(CUE_REVIVE_SUCCESS) == 1);
+    g.mode = GAME_QUIZ; g.edu.quiz.serial++; Frame();
+    g.mode = GAME_LOST; Frame(); MORPH_CHECK(Count(CUE_REVIVE_FAIL) == 1 && Count(CUE_DEFEAT) == 0 && d.plan.track == MUSIC_DEFEAT);
+    /* revive no chefe: atenuação preserva a batalha e suas camadas */
+    Fresh(GAME_BOSS); g.edu.enabled = true; g.world = 5; g.boss.stage = BOSS_FIGHT; g.boss.phase = 2; g.boss.segments = 2; Frame();
+    g.mode = GAME_QUIZ; g.edu.quiz.kind = QUIZ_REVIVE; g.edu.quiz.return_mode = GAME_BOSS; g.edu.quiz.serial = 9; Frame();
+    MORPH_CHECK(d.plan.track == MUSIC_BOSS && d.plan.layers[1] == 1 && d.plan.duck == AUDIO_QUIZ_DUCK);
+    g.mode = GAME_BOSS; Frame(); MORPH_CHECK(Count(CUE_REVIVE_SUCCESS) == 1 && d.plan.duck == 1);
+}
+
 int main(void)
 {
     CheckOneCuePerEvent();
@@ -169,6 +222,7 @@ int main(void)
     CheckTransitionsAndMusic();
     CheckBoss();
     CheckHazardsAndEnvironment();
+    CheckEducational();
     puts("PASS audio-cues: um efeito por evento, intervalos minimos, melodia da coleta, plano musical por tela, "
          "camadas do boss por fase, megarraio e derrota, perigos e ambiente");
     return 0;

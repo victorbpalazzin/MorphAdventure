@@ -395,6 +395,9 @@ O controle utiliza as funções de gamepad da raylib 5.5, sem exigir obrigatoria
 | Direcional | Navegar pelos menus e perguntas |
 | Analógico esquerdo | Navegar pelos menus e perguntas |
 | Círculo | Voltar ou cancelar quando a tela permitir |
+| Triângulo | Ligar ou desligar o som |
+| L1 / R1 (na pausa) | Escolher o volume: Geral, Música ou Efeitos |
+| Direcional ← → (na pausa) | Ajustar o volume escolhido |
 
 O sistema identifica conexão e desconexão do dispositivo durante a execução.
 

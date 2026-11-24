@@ -5,6 +5,7 @@ typedef struct UiSnapshot {
     float battery,title_steps,score_pulse,charge_pulse;
     int focus;
     unsigned collected;
+    int quiz_focus;        /* alternativa em foco no desafio (-1: nenhuma) */
 } UiSnapshot;
 UiApi UiModuleCreate(void);
 /* Input-owner adapter: Tab/Shift-Tab or menu arrows, Enter activation.

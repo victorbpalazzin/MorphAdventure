@@ -33,6 +33,12 @@ static const SfxDef sfx_defs[] = {
     {CUE_UI_MOVE, {"ui_move"}, 2, 0.6f}, {CUE_UI_CONFIRM, {"ui_confirm"}, 1, 0.75f}, {CUE_UI_BACK, {"ui_back"}, 1, 0.7f},
     {CUE_UI_PAUSE, {"ui_pause"}, 1, 0.7f}, {CUE_UI_RESUME, {"ui_resume"}, 1, 0.7f}, {CUE_UI_START, {"ui_start"}, 1, 0.85f},
     {CUE_UI_VOLUME, {"ui_volume"}, 2, 0.7f},
+    /* versão educativa */
+    {CUE_LETTER, {"letter"}, 4, 0.75f}, {CUE_QUIZ_OPEN, {"quiz_open"}, 1, 0.8f}, {CUE_QUIZ_SELECT, {"quiz_select"}, 2, 0.6f},
+    {CUE_QUIZ_CORRECT, {"quiz_correct"}, 1, 0.85f}, {CUE_QUIZ_WRONG, {"quiz_wrong"}, 1, 0.75f},
+    {CUE_QUIZ_TICK, {"quiz_tick"}, 2, 0.6f}, {CUE_QUIZ_TIMEOUT, {"quiz_timeout"}, 1, 0.8f}, {CUE_QUIZ_NEW, {"quiz_new"}, 1, 0.7f},
+    {CUE_QUIZ_UNLOCK, {"quiz_unlock"}, 1, 0.85f}, {CUE_REVIVE_OPEN, {"revive_open"}, 1, 0.85f},
+    {CUE_REVIVE_SUCCESS, {"revive_success"}, 1, 0.9f}, {CUE_REVIVE_FAIL, {"revive_fail"}, 1, 0.85f},
 };
 
 typedef struct MusicDef { MusicTrack track; const char *files[AUDIO_BOSS_LAYERS]; bool loop; } MusicDef;

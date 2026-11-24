@@ -259,6 +259,11 @@
       "peak_db": -3.0,
       "seconds": 0.88
     },
+    "letter": {
+      "file": "letter.ogg",
+      "peak_db": -7.0,
+      "seconds": 1.677
+    },
     "life_up": {
       "file": "life_up.ogg",
       "peak_db": -4.0,
@@ -273,6 +278,61 @@
       "file": "portal_open.ogg",
       "peak_db": -4.0,
       "seconds": 3.406
+    },
+    "quiz_correct": {
+      "file": "quiz_correct.ogg",
+      "peak_db": -4.0,
+      "seconds": 2.534
+    },
+    "quiz_new": {
+      "file": "quiz_new.wav",
+      "peak_db": -10.0,
+      "seconds": 1.21
+    },
+    "quiz_open": {
+      "file": "quiz_open.ogg",
+      "peak_db": -6.0,
+      "seconds": 1.957
+    },
+    "quiz_select": {
+      "file": "quiz_select.wav",
+      "peak_db": -15.0,
+      "seconds": 0.673
+    },
+    "quiz_tick": {
+      "file": "quiz_tick.wav",
+      "peak_db": -12.0,
+      "seconds": 0.226
+    },
+    "quiz_timeout": {
+      "file": "quiz_timeout.ogg",
+      "peak_db": -8.0,
+      "seconds": 2.274
+    },
+    "quiz_unlock": {
+      "file": "quiz_unlock.ogg",
+      "peak_db": -4.0,
+      "seconds": 3.091
+    },
+    "quiz_wrong": {
+      "file": "quiz_wrong.wav",
+      "peak_db": -9.0,
+      "seconds": 1.455
+    },
+    "revive_fail": {
+      "file": "revive_fail.ogg",
+      "peak_db": -6.0,
+      "seconds": 2.844
+    },
+    "revive_open": {
+      "file": "revive_open.ogg",
+      "peak_db": -4.0,
+      "seconds": 2.614
+    },
+    "revive_success": {
+      "file": "revive_success.ogg",
+      "peak_db": -3.0,
+      "seconds": 2.743
     },
     "shield_break": {
       "file": "shield_break.wav",

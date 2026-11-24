@@ -22,6 +22,9 @@ typedef enum AudioCue {
     CUE_BOSS_APPEAR, CUE_BOSS_WARNING, CUE_BOSS_SHOT, CUE_COMBAT_ENERGY, CUE_BATTERY_READY,
     CUE_BEAM, CUE_BOSS_HURT, CUE_BOSS_PHASE, CUE_BOSS_DEFEAT,
     CUE_UI_MOVE, CUE_UI_CONFIRM, CUE_UI_BACK, CUE_UI_PAUSE, CUE_UI_RESUME, CUE_UI_START, CUE_UI_VOLUME,
+    /* Versão educativa */
+    CUE_LETTER, CUE_QUIZ_OPEN, CUE_QUIZ_SELECT, CUE_QUIZ_CORRECT, CUE_QUIZ_WRONG, CUE_QUIZ_TICK,
+    CUE_QUIZ_TIMEOUT, CUE_QUIZ_NEW, CUE_QUIZ_UNLOCK, CUE_REVIVE_OPEN, CUE_REVIVE_SUCCESS, CUE_REVIVE_FAIL,
     CUE_COUNT
 } AudioCue;
 
@@ -33,6 +36,7 @@ typedef enum MusicTrack {
 #define AUDIO_BOSS_LAYERS 3
 #define AUDIO_MAX_CUES 24
 #define AUDIO_MAX_TAPS 64
+#define AUDIO_QUIZ_DUCK 0.3f   /* música do mundo atenuada para favorecer leitura e concentração */
 
 typedef enum AudioTapKind {
     TAP_GAME_EVENT,      /* param: GameEventType, boost: BoostType */
@@ -59,7 +63,7 @@ typedef struct MusicPlan {
     float level;                         /* 0..1: alvo da faixa atual */
     float layers[AUDIO_BOSS_LAYERS];     /* camadas da batalha (fases 1, 2 e 3) */
     float fade_seconds;                  /* tempo de transição para o novo alvo */
-    float duck;                          /* 1 normal; <1 durante desafios/feedback */
+    float duck;                          /* 1 normal; AUDIO_QUIZ_DUCK durante os desafios */
     bool paused;                         /* pausa/perda de foco congelam músicas e efeitos */
 } MusicPlan;
 
@@ -71,6 +75,8 @@ typedef struct AudioDirector {
     unsigned boss_projectiles, boss_segments, boss_phase, combat_collected;
     BossStage boss_stage;
     bool boss_warning, beam_active;
+    unsigned quiz_serial;                /* desafio educativo: muda a cada pergunta/fase */
+    int quiz_phase, quiz_second;
     float cooldown[CUE_COUNT];
     uint32_t seed;
     unsigned tap_count;

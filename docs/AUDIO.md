@@ -166,8 +166,29 @@ ouvido** por quem o produziu. A avaliação artística precisa de escuta humana.
 
 ## Versão educativa
 
-A branch educativa acrescenta (em commit separado): letras com som da mesma família da
-energia, sons de pergunta, seleção, acerto, erro, nova pergunta, alerta dos últimos
-segundos (só em 3, 2 e 1), tempo esgotado, segunda chance e ressurreição; a música do
-mundo é atenuada durante os desafios e volta gradualmente; o volume também pode ser
-ajustado com o controle de PS4 na pausa.
+Tudo o que está acima, mais 12 efeitos dos desafios (em `tools/audio/sfx_edu.py`, presente
+só nesta branch). Princípio: informar sem assustar ou humilhar.
+
+| Momento | Som |
+|---|---|
+| Letra coletada | Mesma família da energia (mesma melodia ascendente), com um leve "virar de página" e uma vogal sintetizada |
+| Pergunta aparece | Duas notas que pedem atenção e um swell suave, sem urgência |
+| Troca de alternativa | Toque curtíssimo de mallet |
+| Acerto | Arpejo maior ascendente que floresce num acorde, com brilho |
+| Erro | Dois tons aveludados descendo — sem buzina, sem dissonância agressiva |
+| Últimos segundos | Só em 3, 2 e 1: tique de relógio de madeira, discreto, subindo levemente |
+| Tempo esgotado | Sino abafado duplo e queda suave |
+| Nova pergunta | Página virando e uma nota leve |
+| Desafio de portal concluído | Escala mágica até a oitava, cordas e brilho; em seguida o som do portal se abrindo |
+| Segunda chance | Batimento cardíaco e swell esperançoso |
+| Ressurreição | Acorde maior que se abre, batimento forte e faíscas |
+| Segunda chance encerrada | Descida suave e acolhedora (no lugar do som de derrota) |
+
+Durante qualquer desafio a música do momento (mundo ou batalha, com suas camadas) continua
+tocando a **30%** e volta gradualmente ao fim da pergunta; o cronômetro não depende do áudio.
+
+Com o DualShock 4 (só nesta versão): **Triângulo** liga/desliga o som; na pausa, **L1/R1**
+escolhem o canal e **←/→** ajustam o volume (↑/↓ continuam trocando de botão). O teste
+`--gamepad-test` também mostra Triângulo, L1 e R1.
+
+Nesta branch o pacote leva 59 efeitos (47 compartilhados + 12 educativos) e as mesmas 12 músicas.

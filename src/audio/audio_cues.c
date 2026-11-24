@@ -10,6 +10,7 @@ static const float cooldowns[CUE_COUNT] = {
     [CUE_FLAP] = 0.05f, [CUE_HIT] = 0.12f,
     [CUE_HAZARD] = 0.15f, [CUE_HAZARD_WARNING] = 0.25f, [CUE_ENV_EVENT] = 1.0f, [CUE_ENV_WARNING] = 1.0f,
     [CUE_BOSS_SHOT] = 0.07f, [CUE_UI_MOVE] = 0.03f, [CUE_UI_VOLUME] = 0.03f,
+    [CUE_QUIZ_SELECT] = 0.03f, [CUE_QUIZ_TICK] = 0.3f,
 };
 
 static AudioDirector shared;
@@ -92,7 +93,9 @@ static void HandleTap(AudioDirector *d, const GameState *g, AudioTap t)
                 unsigned k = g->boss.energy.collected ? g->boss.energy.collected - 1 : 0;
                 Emit(d, CUE_COMBAT_ENERGY, 0, steps[k % 4], 0.85f, 0);
             } else {
-                Emit(d, CUE_COLLECT, 0, AudioCollectPitch(Collected(g), GameEnergyRequired(g->world)), 0.8f, 0);
+                /* educativo: letra, mesma família sonora e mesma melodia ascendente */
+                Emit(d, g->edu.enabled ? CUE_LETTER : CUE_COLLECT, 0,
+                     AudioCollectPitch(Collected(g), GameEnergyRequired(g->world)), 0.8f, 0);
             }
             break;
         case EVENT_BOOST_COLLECTED: {
@@ -122,8 +125,16 @@ static void Transitions(AudioDirector *d, const GameState *g, int ui_focus)
         if (now == GAME_PLAY && before == GAME_INTRO) Emit(d, CUE_UI_START, 0, 1, 0.85f, 0);
         else if (now == GAME_PLAY && (before == GAME_LOST || before == GAME_WON)) Emit(d, CUE_UI_CONFIRM, 0, 1, 0.8f, 0);
         if (now == GAME_INTRO && (before == GAME_PAUSED || before == GAME_LOST || before == GAME_WON)) Emit(d, CUE_UI_BACK, 0, 1, 0.75f, 0);
-        if (now == GAME_LOST) Emit(d, CUE_DEFEAT, 0, 1, 0.9f, 0);
+        if (now == GAME_LOST && before == GAME_QUIZ) Emit(d, CUE_REVIVE_FAIL, 0, 1, 0.85f, 0);
+        else if (now == GAME_LOST) Emit(d, CUE_DEFEAT, 0, 1, 0.9f, 0);
         if (now == GAME_PORTAL && before == GAME_PLAY) Emit(d, CUE_PORTAL_OPEN, 0, 1, 0.85f, 0);
+        if (now == GAME_QUIZ && before != GAME_PAUSED)
+            Emit(d, g->edu.quiz.kind == QUIZ_REVIVE ? CUE_REVIVE_OPEN : CUE_QUIZ_OPEN, 0, 1, 0.8f, 0);
+        if (before == GAME_QUIZ && now == GAME_PORTAL) {
+            Emit(d, CUE_QUIZ_UNLOCK, 0, 1, 0.85f, 0);
+            Emit(d, CUE_PORTAL_OPEN, 0, 1, 0.8f, 0);
+        }
+        if (before == GAME_QUIZ && (now == GAME_PLAY || now == GAME_BOSS)) Emit(d, CUE_REVIVE_SUCCESS, 0, 1, 0.9f, 0);
         if (now == GAME_BOSS && before == GAME_TRANSITION) {
             Emit(d, CUE_WORLD_WHOOSH, 0, 1, 0.8f, 0);
             Emit(d, CUE_BOSS_APPEAR, 0, 1, 0.95f, 0);
@@ -131,6 +142,22 @@ static void Transitions(AudioDirector *d, const GameState *g, int ui_focus)
     }
     if (g->world_id != d->world_id && g->run_id == d->run_id && now == GAME_TRANSITION) Emit(d, CUE_WORLD_WHOOSH, 0, 1, 0.8f, 0);
     if (Menu(now) && now == before && ui_focus >= 0 && d->ui_focus >= 0 && ui_focus != d->ui_focus) Emit(d, CUE_UI_MOVE, 0, 1, 0.6f, 0);
+    if (now == GAME_QUIZ && before == GAME_QUIZ) {
+        const QuizState *q = &g->edu.quiz;
+        if (q->serial != d->quiz_serial) {
+            if (q->phase == QUIZ_FEEDBACK)
+                Emit(d, q->result == QUIZ_CORRECT ? CUE_QUIZ_CORRECT : q->result == QUIZ_TIMEOUT ? CUE_QUIZ_TIMEOUT : CUE_QUIZ_WRONG,
+                     0, 1, 0.85f, 0);
+            else
+                Emit(d, CUE_QUIZ_NEW, 0, 1, 0.7f, 0);
+        } else if (q->phase == QUIZ_ASKING) {
+            /* cronômetro: só os três últimos segundos falam, com tique suave que sobe */
+            int second = (int)ceilf(q->seconds_left);
+            if (second < d->quiz_second && second >= 1 && second <= 3)
+                Emit(d, CUE_QUIZ_TICK, second, second == 3 ? 1.0f : second == 2 ? 1.122f : 1.26f, 0.7f, 0);
+            if (ui_focus >= 0 && ui_focus != d->ui_focus) Emit(d, CUE_QUIZ_SELECT, 0, 1, 0.6f, 0);
+        }
+    }
 
     const BossState *b = &g->boss;
     if (b->stage != BOSS_DORMANT && d->boss_stage != BOSS_DORMANT && g->run_id == d->run_id) {
@@ -151,6 +178,11 @@ static void Plan(AudioDirector *d, const GameState *g)
     p->paused = g->mode == GAME_PAUSED;
     p->duck = 1;
     GameMode mode = g->mode == GAME_PAUSED ? g->resume_mode : g->mode;
+    if (mode == GAME_QUIZ) {
+        /* desafio: mantém a faixa (e as camadas do chefe) do momento, atenuada */
+        mode = g->edu.quiz.return_mode;
+        p->duck = AUDIO_QUIZ_DUCK;
+    }
     for (int i = 0; i < AUDIO_BOSS_LAYERS; i++) p->layers[i] = 0;
     switch (mode) {
     case GAME_INTRO: p->track = MUSIC_MENU; p->level = 1; p->fade_seconds = 1.5f; break;
@@ -204,6 +236,8 @@ void AudioDirectorUpdate(AudioDirector *d, const GameState *g, int ui_focus, dou
     d->boss_segments = g->boss.segments; d->boss_phase = g->boss.phase;
     d->combat_collected = g->boss.energy.collected;
     d->boss_warning = g->boss.warning > 0; d->beam_active = g->boss.beam_active;
+    d->quiz_serial = g->edu.quiz.serial; d->quiz_phase = (int)g->edu.quiz.phase;
+    d->quiz_second = (int)ceilf(g->edu.quiz.seconds_left);
 }
 
 const char *AudioCueName(AudioCue cue)
@@ -213,6 +247,8 @@ const char *AudioCueName(AudioCue cue)
         "boost_shield", "boost_magnet", "boost_slow", "boost_double", "boost_phase", "shield_break",
         "portal_open", "portal_enter", "world_whoosh", "env_warning", "env", "hazard_warning", "hazard",
         "boss_appear", "boss_warning", "boss_shot", "combat_energy", "battery_ready", "beam", "boss_hurt",
-        "boss_phase", "boss_defeat", "ui_move", "ui_confirm", "ui_back", "ui_pause", "ui_resume", "ui_start", "ui_volume"};
+        "boss_phase", "boss_defeat", "ui_move", "ui_confirm", "ui_back", "ui_pause", "ui_resume", "ui_start", "ui_volume",
+        "letter", "quiz_open", "quiz_select", "quiz_correct", "quiz_wrong", "quiz_tick", "quiz_timeout", "quiz_new",
+        "quiz_unlock", "revive_open", "revive_success", "revive_fail"};
     return cue >= 0 && cue < CUE_COUNT ? names[cue] : "?";
 }
