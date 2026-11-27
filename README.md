@@ -17,8 +17,9 @@ A versão mais recente do Arcade, **v1.1.0**, também conta com trilha sonora or
 | Versão | Características | Status |
 |---|---|---|
 | Arcade v1.1.0 | Seis mundos, energia, Grootspectro, áudio e controle de PS4 | Publicada |
-| Educativo v1.0.0 | Letras, desafios de lógica, cronômetro e segunda chance | Publicada |
+| Educativo v1.1.0 | Letras, desafios de lógica, cronômetro, segunda chance, áudio e controle de PS4 | Publicada |
 | Arcade v1.0.0 | Primeira edição Arcade completa | Versão anterior |
+| Educativo v1.0.0 | Primeira edição com desafios de lógica | Versão anterior |
 
 ### 📥 Downloads
 
@@ -26,11 +27,11 @@ A versão mais recente do Arcade, **v1.1.0**, também conta com trilha sonora or
 
 Edição Arcade atualizada, com músicas originais, efeitos sonoros, controles de volume e compatibilidade com DualShock 4 conectado por USB.
 
-**[Baixar Educativo v1.0.0](https://github.com/victorbpalazzin/MorphAdventure/releases/tag/educativo-v1.0.0)**
+**[Baixar Educativo v1.1.0 — Áudio + DualShock 4](https://github.com/victorbpalazzin/MorphAdventure/releases/tag/educativov-1.1.0)**
 
-Edição voltada ao aprendizado de Lógica Proposicional, com coleta de letras, perguntas de múltipla escolha e sistema de segunda chance.
+Edição que combina desafios de Lógica Proposicional com coleta de letras, perguntas de múltipla escolha, sistema de segunda chance, trilhas sonoras e efeitos específicos para os desafios, além de suporte ao DualShock 4.
 
-A edição Educativa v1.0.0 é uma publicação independente. A integração posterior de áudio educativo está sendo desenvolvida separadamente e não deve ser confundida com os recursos já distribuídos nessa versão.
+As versões anteriores continuam disponíveis na página de Releases do projeto.
 
 **[Ver todas as Releases](https://github.com/victorbpalazzin/MorphAdventure/releases)**
 
